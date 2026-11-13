@@ -6,13 +6,19 @@
       "request": "launch",
       "name": "Debug shipment-svc with Nx",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["nx", "serve", "shipment-svc"],
+      "runtimeArgs": [
+        "nx",
+        "serve",
+        "shipment-svc"
+      ],
       "env": {
         "NODE_OPTIONS": "--inspect=9229"
       },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/apps/shipment-svc/dist/**/*.(m|c|)js",
@@ -24,16 +30,46 @@
       "request": "launch",
       "name": "Debug screening-svc with Nx",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["nx", "serve", "screening-svc"],
+      "runtimeArgs": [
+        "nx",
+        "serve",
+        "screening-svc"
+      ],
       "env": {
         "NODE_OPTIONS": "--inspect=9230"
       },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/apps/screening-svc/dist/**/*.(m|c|)js",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug api-gateway with Nx",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "nx",
+        "serve",
+        "api-gateway"
+      ],
+      "env": {
+        "NODE_OPTIONS": "--inspect=9231"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/apps/api-gateway/dist/**/*.(m|c|)js",
         "!**/node_modules/**"
       ]
     }

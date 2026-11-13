@@ -189,6 +189,69 @@ docker compose exec -T postgres psql -U cargo -d cargo_compliance \
 
 Optional reject: `POST /holds/:awb/release-rejections` with `{ "reason": "..." }` and the same analyst headers.
 
+
+## api-gateway
+
+NestJS BFF on `127.0.0.1:3100`. It issues a short-lived JWT, strips any client-supplied `x-user-id` / `x-roles`, sets those headers from the token, and proxies to shipment-svc (`3101`) and screening-svc (`3102`). `Idempotency-Key` and `x-correlation-id` are forwarded (a correlation id is generated if missing). Live status events are pushed over `GET /stream` (SSE) from `hold.events` and `shipment.events`. EventSource cannot send an `Authorization` header, so authenticate the stream with a 60-second single-use token from `POST /auth/stream-token` (query parameter) or the HttpOnly `ccg_token` cookie set at login.
+
+Seeded demo users (placeholders only): `operator` / `operator-demo` (OPERATOR), `analyst-a` / `analyst-a-demo` (ANALYST), `analyst-b` / `analyst-b-demo` (ANALYST). Set `JWT_SECRET` in the gitignored `.env` (see `.env.example`).
+
+```sh
+npx nx serve shipment-svc
+npx nx serve screening-svc
+npx nx serve api-gateway
+```
+
+```sh
+# login
+TOKEN=$(curl -sS -X POST http://127.0.0.1:3100/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"operator","password":"operator-demo"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+
+# submit a shipment through the gateway
+curl -sS -X POST http://127.0.0.1:3100/shipments \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: demo-key-1' \
+  -d '{
+    "awb": "020-50000001",
+    "origin": "KUL",
+    "destination": "AMS",
+    "pieces": 2,
+    "weight": 15.5,
+    "goodsDescription": "Electronic parts",
+    "hsCode": "8542.31",
+    "routing": "KUL-AMS",
+    "shipper": {"name": "Acme Forwarding", "country": "MY"},
+    "consignee": {"name": "Rotterdam Imports", "country": "NL"}
+  }'
+
+# a spoofed ANALYST role header is ignored; operator still cannot request release
+curl -sS -o /dev/stderr -w "%{http_code}\n" -X POST http://127.0.0.1:3100/holds/020-50000002/release-requests \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'x-roles: ANALYST'
+
+# maker-checker via the gateway (use a sanctioned AWB that is already HELD)
+A_TOKEN=$(curl -sS -X POST http://127.0.0.1:3100/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"analyst-a","password":"analyst-a-demo"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+B_TOKEN=$(curl -sS -X POST http://127.0.0.1:3100/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"analyst-b","password":"analyst-b-demo"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+
+curl -sS -X POST http://127.0.0.1:3100/holds/020-50000002/release-requests \
+  -H "Authorization: Bearer $A_TOKEN"
+curl -sS -o /dev/stderr -w "%{http_code}\n" -X POST http://127.0.0.1:3100/holds/020-50000002/release-approvals \
+  -H "Authorization: Bearer $A_TOKEN"
+curl -sS -X POST http://127.0.0.1:3100/holds/020-50000002/release-approvals \
+  -H "Authorization: Bearer $B_TOKEN"
+
+# live stream (token is single-use and lasts 60 seconds)
+STREAM=$(curl -sS -X POST http://127.0.0.1:3100/auth/stream-token \
+  -H "Authorization: Bearer $TOKEN" | python3 -c "import json,sys; print(json.load(sys.stdin)['token'])")
+curl -N "http://127.0.0.1:3100/stream?token=$STREAM"
+```
+
 ## Run tasks
 
 To run tasks with Nx use:
