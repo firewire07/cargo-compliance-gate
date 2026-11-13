@@ -1,0 +1,16 @@
+{
+  "ruleVersion": "sanctions-name-only.v1",
+  "threshold": 0.85,
+  "entries": [
+    { "name": "Viktor Petrov Trading", "country": "RU" },
+    { "name": "Northern Star Logistics", "country": "KP" },
+    { "name": "Al-Majid Export House", "country": "SY" },
+    { "name": "Golden River Shipping", "country": "IR" },
+    { "name": "Red Banner Holdings", "country": "RU" },
+    { "name": "Pyongyang Freight Agency", "country": "KP" },
+    { "name": "Caspian Shadow LLC", "country": "IR" },
+    { "name": "Eastern Promise Traders", "country": "CN" },
+    { "name": "Midnight Cargo Services", "country": "AE" },
+    { "name": "Sanctions Test Consignee", "country": "RU" }
+  ]
+}

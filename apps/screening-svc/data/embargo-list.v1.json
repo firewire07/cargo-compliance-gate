@@ -1,0 +1,16 @@
+{
+  "ruleVersion": "embargo.v1",
+  "countries": ["KP", "SY", "IR", "CU"],
+  "airports": {
+    "FNJ": "KP",
+    "DAM": "SY",
+    "IKA": "IR",
+    "HAV": "CU",
+    "KUL": "MY",
+    "AMS": "NL",
+    "SIN": "SG",
+    "FRA": "DE",
+    "LHR": "GB",
+    "JFK": "US"
+  }
+}

@@ -1,0 +1,13 @@
+<mat-toolbar>
+  <a class="brand" routerLink="/">Cargo Compliance Gate</a>
+  @if (user(); as session) {
+    <a mat-button routerLink="/shipments">Shipments</a>
+    <a mat-button routerLink="/shipments/new">Submit</a>
+    <span class="spacer"></span>
+    <span class="session">{{ session.username }} ({{ session.role }})</span>
+    <button mat-button type="button" (click)="logout()">Log out</button>
+  }
+</mat-toolbar>
+<main>
+  <router-outlet></router-outlet>
+</main>

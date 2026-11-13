@@ -1,0 +1,10 @@
+{
+  "ruleVersion": "dg.v1",
+  "entries": [
+    { "unNumber": "UN0150", "forbiddenOn": ["PASSENGER", "CARGO"] },
+    { "unNumber": "UN0220", "forbiddenOn": ["PASSENGER"] },
+    { "unNumber": "UN0147", "forbiddenOn": ["PASSENGER"] },
+    { "unNumber": "UN0473", "forbiddenOn": ["PASSENGER", "CARGO"] },
+    { "unNumber": "UN0474", "forbiddenOn": ["PASSENGER"] }
+  ]
+}

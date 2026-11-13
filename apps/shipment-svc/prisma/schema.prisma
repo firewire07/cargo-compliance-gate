@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["shipment"]
+}
+
+enum PartyRole {
+  SHIPPER
+  CONSIGNEE
+
+  @@schema("shipment")
+}
+
+enum ShipmentStatus {
+  SUBMITTED
+  CHECKING
+  HELD
+  CLEARED
+  RELEASED
+
+  @@schema("shipment")
+}
+
+enum CheckType {
+  DG
+  EMBARGO
+  SANCTIONS
+
+  @@schema("shipment")
+}
+
+model Shipment {
+  id               String         @id @default(uuid()) @db.Uuid
+  awb              String         @unique
+  origin           String
+  destination      String
+  pieces           Int
+  weight           Float
+  goodsDescription String
+  hsCode           String?
+  unNumber         String?
+  routing          String
+  status           ShipmentStatus @default(SUBMITTED)
+  version          Int            @default(1)
+  parties          Party[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("shipments")
+  @@schema("shipment")
+}
+
+model Party {
+  id         String    @id @default(uuid()) @db.Uuid
+  role       PartyRole
+  name       String
+  country    String
+  shipmentId String    @db.Uuid
+  shipment   Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@map("parties")
+  @@schema("shipment")
+}
+
+model PendingCheck {
+  id              String      @id @default(uuid()) @db.Uuid
+  awb             String
+  shipmentVersion Int
+  expected        CheckType[]
+  received        Json        @default("[]")
+  deadline        DateTime
+  decidedAt       DateTime?
+  correlationId   String
+  createdAt       DateTime    @default(now())
+
+  @@unique([awb, shipmentVersion])
+  @@index([decidedAt, deadline])
+  @@map("pending_checks")
+  @@schema("shipment")
+}
+
+model Hold {
+  id              String   @id @default(uuid()) @db.Uuid
+  awb             String
+  shipmentVersion Int
+  reasons         Json
+  createdAt       DateTime @default(now())
+
+  @@index([awb])
+  @@map("holds")
+  @@schema("shipment")
+}
+
+model ProcessedEvent {
+  eventId     String   @id
+  processedAt DateTime @default(now())
+
+  @@map("processed_events")
+  @@schema("shipment")
+}
+
+model Outbox {
+  id          String    @id @db.Uuid
+  aggregateId String
+  type        String
+  topic       String    @default("shipment.events")
+  payload     Json
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+
+  @@index([sentAt, createdAt])
+  @@map("outbox")
+  @@schema("shipment")
+}

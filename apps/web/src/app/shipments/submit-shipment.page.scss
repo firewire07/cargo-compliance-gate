@@ -1,0 +1,33 @@
+mat-card {
+  margin: 1.5rem auto;
+  max-width: 64rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.parties {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+fieldset {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.error {
+  color: var(--mat-sys-error);
+}

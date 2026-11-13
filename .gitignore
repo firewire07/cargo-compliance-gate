@@ -43,3 +43,13 @@ Thumbs.db
 .nx/migrate-runs
 .claude/worktrees
 .claude/settings.local.json
+
+.angular
+
+# local env (credentials); keep .env.example
+.env
+
+# Prisma generated clients (per service)
+apps/**/generated/
+
+__screenshots__/

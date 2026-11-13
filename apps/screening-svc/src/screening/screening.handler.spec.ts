@@ -1,0 +1,99 @@
+import { Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  EventEnvelope,
+  SHIPMENT_SUBMITTED,
+  ShipmentEventPayload,
+} from '../events/envelope';
+import { ScreeningHandler } from './screening.handler';
+
+const envelope: EventEnvelope<ShipmentEventPayload> = {
+  id: 'evt-1',
+  type: SHIPMENT_SUBMITTED,
+  schemaVersion: 1,
+  occurredAt: '2026-11-13T08:00:00.000Z',
+  correlationId: 'corr-1',
+  awb: '020-12345675',
+  shipmentVersion: 1,
+  payload: {
+    awb: '020-12345675',
+    origin: 'KUL',
+    destination: 'AMS',
+    routing: 'KUL-AMS',
+    goodsDescription: 'Electronic parts',
+    shipper: { name: 'Acme Forwarding', country: 'MY' },
+    consignee: { name: 'Rotterdam Imports', country: 'NL' },
+  },
+};
+
+describe('ScreeningHandler', () => {
+  const tx = {
+    processedEvent: { createMany: jest.fn() },
+    screeningResult: { create: jest.fn() },
+    outbox: { create: jest.fn() },
+  };
+  const prisma = {
+    $transaction: jest.fn(),
+  };
+
+  let handler: ScreeningHandler;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Logger.prototype, 'log').mockImplementation();
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    prisma.$transaction.mockImplementation(async (fn: (t: typeof tx) => unknown) =>
+      fn(tx),
+    );
+    handler = new ScreeningHandler(prisma as unknown as PrismaService);
+  });
+
+  it('writes processed_event, three results and three outbox rows in one transaction', async () => {
+    tx.processedEvent.createMany.mockResolvedValue({ count: 1 });
+    tx.screeningResult.create.mockResolvedValue({});
+    tx.outbox.create.mockResolvedValue({});
+
+    const result = await handler.handle(envelope);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.processedEvent.createMany).toHaveBeenCalledWith({
+      data: [{ eventId: 'evt-1' }],
+      skipDuplicates: true,
+    });
+    expect(tx.screeningResult.create).toHaveBeenCalledTimes(3);
+    expect(tx.outbox.create).toHaveBeenCalledTimes(3);
+    const checks = tx.screeningResult.create.mock.calls.map(
+      (call) => call[0].data.check,
+    );
+    expect(checks).toEqual(['DG', 'EMBARGO', 'SANCTIONS']);
+    expect(tx.outbox.create.mock.calls[0][0].data.aggregateId).toBe(
+      '020-12345675',
+    );
+    expect(tx.outbox.create.mock.calls[0][0].data.payload).toEqual(
+      expect.objectContaining({
+        type: 'screening.checked',
+        schemaVersion: 1,
+        correlationId: 'corr-1',
+        awb: '020-12345675',
+        shipmentVersion: 1,
+        payload: expect.objectContaining({
+          check: 'DG',
+          ruleVersion: expect.any(String),
+        }),
+      }),
+    );
+    expect(result).toEqual(
+      expect.objectContaining({ status: 'processed', eventId: 'evt-1' }),
+    );
+  });
+
+  it('skips all writes when the event id was already processed', async () => {
+    tx.processedEvent.createMany.mockResolvedValue({ count: 0 });
+
+    const result = await handler.handle(envelope);
+
+    expect(tx.screeningResult.create).not.toHaveBeenCalled();
+    expect(tx.outbox.create).not.toHaveBeenCalled();
+    expect(result).toEqual({ status: 'skipped', eventId: 'evt-1' });
+  });
+});

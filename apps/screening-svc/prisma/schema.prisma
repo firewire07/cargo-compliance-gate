@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SCREENING_DATABASE_URL")
+  schemas  = ["screening"]
+}
+
+enum CheckType {
+  DG
+  EMBARGO
+  SANCTIONS
+
+  @@schema("screening")
+}
+
+enum CheckOutcome {
+  PASS
+  HIT
+
+  @@schema("screening")
+}
+
+model ScreeningResult {
+  id              String       @id @default(uuid()) @db.Uuid
+  awb             String
+  shipmentVersion Int
+  check           CheckType
+  outcome         CheckOutcome
+  ruleVersion     String
+  score           Float?
+  reasons         Json
+  inputs          Json
+  createdAt       DateTime     @default(now())
+
+  @@unique([awb, shipmentVersion, check])
+  @@map("screening_results")
+  @@schema("screening")
+}
+
+model ProcessedEvent {
+  eventId     String   @id
+  processedAt DateTime @default(now())
+
+  @@map("processed_events")
+  @@schema("screening")
+}
+
+model Outbox {
+  id          String    @id @db.Uuid
+  aggregateId String
+  type        String
+  payload     Json
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+
+  @@index([sentAt, createdAt])
+  @@map("outbox")
+  @@schema("screening")
+}

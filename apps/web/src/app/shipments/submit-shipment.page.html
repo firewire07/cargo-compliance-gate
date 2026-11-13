@@ -1,0 +1,117 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Submit a shipment</mat-card-title>
+    <mat-card-subtitle>
+      Each attempt sends an Idempotency-Key. The same key is reused if you retry
+      after an error. shipment-svc does not honour the header yet.
+    </mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>AWB</mat-label>
+          <input matInput formControlName="awb" placeholder="020-12345675" />
+          @if (form.controls.awb.invalid && form.controls.awb.touched) {
+            <mat-error>Enter an AWB such as 020-12345675</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Origin</mat-label>
+          <input matInput formControlName="origin" placeholder="KUL" />
+          @if (form.controls.origin.invalid && form.controls.origin.touched) {
+            <mat-error>Use a 2-letter country or 3-letter airport code</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Destination</mat-label>
+          <input matInput formControlName="destination" placeholder="AMS" />
+          @if (form.controls.destination.invalid && form.controls.destination.touched) {
+            <mat-error>Use a 2-letter country or 3-letter airport code</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Routing</mat-label>
+          <input matInput formControlName="routing" placeholder="KUL-AMS" />
+          @if (form.controls.routing.invalid && form.controls.routing.touched) {
+            <mat-error>Routing is required</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Pieces</mat-label>
+          <input matInput type="number" formControlName="pieces" min="1" />
+          @if (form.controls.pieces.invalid && form.controls.pieces.touched) {
+            <mat-error>Pieces must be at least 1</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Weight (kg)</mat-label>
+          <input matInput type="number" formControlName="weight" min="0" step="0.1" />
+          @if (form.controls.weight.invalid && form.controls.weight.touched) {
+            <mat-error>Weight must be 0 or more</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Goods description</mat-label>
+          <input matInput formControlName="goodsDescription" />
+          @if (form.controls.goodsDescription.invalid && form.controls.goodsDescription.touched) {
+            <mat-error>Goods description is required</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>HS code (optional)</mat-label>
+          <input matInput formControlName="hsCode" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>UN number (optional)</mat-label>
+          <input matInput formControlName="unNumber" placeholder="UN0220" />
+        </mat-form-field>
+      </div>
+
+      <div class="parties">
+        <fieldset formGroupName="shipper">
+          <legend>Shipper</legend>
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" />
+            @if (form.controls.shipper.controls.name.invalid && form.controls.shipper.controls.name.touched) {
+              <mat-error>Shipper name is required</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" placeholder="MY" />
+            @if (form.controls.shipper.controls.country.invalid && form.controls.shipper.controls.country.touched) {
+              <mat-error>Use a 2-letter country code</mat-error>
+            }
+          </mat-form-field>
+        </fieldset>
+        <fieldset formGroupName="consignee">
+          <legend>Consignee</legend>
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" />
+            @if (form.controls.consignee.controls.name.invalid && form.controls.consignee.controls.name.touched) {
+              <mat-error>Consignee name is required</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" placeholder="NL" />
+            @if (form.controls.consignee.controls.country.invalid && form.controls.consignee.controls.country.touched) {
+              <mat-error>Use a 2-letter country code</mat-error>
+            }
+          </mat-form-field>
+        </fieldset>
+      </div>
+
+      @if (errorMessage(); as message) {
+        <p class="error">{{ message }}</p>
+      }
+
+      <button mat-flat-button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting…' : 'Submit shipment' }}
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

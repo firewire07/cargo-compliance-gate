@@ -1,0 +1,42 @@
+mat-card {
+  margin: 1.5rem auto;
+  max-width: 64rem;
+}
+
+.lookup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.list {
+  width: 100%;
+}
+
+.empty,
+.notice {
+  margin-top: 1rem;
+}
+
+.error {
+  color: var(--mat-sys-error);
+}
+
+.status-submitted,
+.status-checking {
+  --mdc-chip-label-text-color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-secondary-container);
+}
+
+.status-held {
+  --mdc-chip-label-text-color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+.status-cleared,
+.status-released {
+  --mdc-chip-label-text-color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
