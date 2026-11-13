@@ -85,14 +85,39 @@ model PendingCheck {
 }
 
 model Hold {
-  id              String   @id @default(uuid()) @db.Uuid
-  awb             String
-  shipmentVersion Int
-  reasons         Json
-  createdAt       DateTime @default(now())
+  id                     String    @id @default(uuid()) @db.Uuid
+  awb                    String
+  shipmentVersion        Int
+  reasons                Json
+  checklist              Json      @default("[]")
+  releaseRequestedBy     String?
+  releaseRequestedAt     DateTime?
+  releaseApprovedBy      String?
+  releaseApprovedAt      DateTime?
+  releaseRejectedBy      String?
+  releaseRejectedAt      DateTime?
+  releaseRejectionReason String?
+  createdAt              DateTime  @default(now())
 
   @@index([awb])
   @@map("holds")
+  @@schema("shipment")
+}
+
+model AuditEntry {
+  seq         Int      @id @default(autoincrement())
+  eventId     String   @unique
+  type        String
+  awb         String
+  actor       String
+  ts          DateTime
+  payload     Json
+  payloadHash String
+  prevHash    String
+  hash        String
+
+  @@index([awb, seq])
+  @@map("audit_entries")
   @@schema("shipment")
 }
 

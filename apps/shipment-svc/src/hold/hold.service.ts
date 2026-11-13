@@ -1,15 +1,29 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
   Prisma,
   ShipmentStatus,
 } from '../../generated/prisma';
+import { AuditService } from '../audit/audit.service';
+import { Actor } from '../auth/actor';
 import {
+  EventActor,
   EventEnvelope,
+  HOLD_CHECKLIST_UPDATED,
   HOLD_EVENTS_TOPIC,
+  HOLD_RELEASE_APPROVED,
+  HOLD_RELEASE_REJECTED,
+  HOLD_RELEASE_REQUESTED,
   SCREENING_CHECKED,
   SHIPMENT_CLEARED,
   SHIPMENT_HELD,
+  SHIPMENT_RELEASED,
   ScreeningCheckedPayload,
 } from '../events/envelope';
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,6 +36,12 @@ import {
   isStale,
   timeoutReasons,
 } from './hold.aggregator';
+import {
+  ChecklistItem,
+  checklistComplete,
+  defaultChecklist,
+  mergeChecklist,
+} from './hold.checklist';
 
 export type ApplyResult =
   | { status: 'ignored'; reason: string }
@@ -34,7 +54,10 @@ export type ApplyResult =
 export class HoldService {
   private readonly logger = new Logger(HoldService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async handleMessage(raw: string): Promise<ApplyResult> {
     let envelope: EventEnvelope<ScreeningCheckedPayload>;
@@ -150,6 +173,176 @@ export class HoldService {
     return decided;
   }
 
+  async updateChecklist(
+    awb: string,
+    updates: Array<{ id: string; done: boolean; note?: string }>,
+    actor: Actor,
+    correlationId?: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const { shipment, hold } = await this.requireOpenHold(tx, awb);
+      const current = (hold.checklist as ChecklistItem[]) ?? defaultChecklist();
+      const checklist = mergeChecklist(current, updates);
+      const updated = await tx.hold.update({
+        where: { id: hold.id },
+        data: { checklist: checklist as unknown as Prisma.InputJsonValue },
+      });
+      await this.writeDomainEvent(tx, {
+        type: HOLD_CHECKLIST_UPDATED,
+        awb,
+        shipmentVersion: shipment.version,
+        correlationId,
+        actor,
+        payload: { checklist, actor },
+      });
+      return updated;
+    });
+  }
+
+  async requestRelease(awb: string, actor: Actor, correlationId?: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const { shipment, hold } = await this.requireOpenHold(tx, awb);
+      if (hold.releaseApprovedBy) {
+        throw new ConflictException(`Hold for ${awb} is already released`);
+      }
+      if (hold.releaseRequestedBy && !hold.releaseRejectedAt) {
+        throw new ConflictException(`Release already requested by ${hold.releaseRequestedBy}`);
+      }
+      const checklist = (hold.checklist as ChecklistItem[]) ?? defaultChecklist();
+      if (!checklistComplete(checklist)) {
+        throw new ConflictException('Due-diligence checklist must be complete before requesting release');
+      }
+      const now = new Date();
+      const updated = await tx.hold.update({
+        where: { id: hold.id },
+        data: {
+          releaseRequestedBy: actor.actorId,
+          releaseRequestedAt: now,
+          releaseRejectedBy: null,
+          releaseRejectedAt: null,
+          releaseRejectionReason: null,
+        },
+      });
+      await this.writeDomainEvent(tx, {
+        type: HOLD_RELEASE_REQUESTED,
+        awb,
+        shipmentVersion: shipment.version,
+        correlationId,
+        actor,
+        payload: { requestedBy: actor.actorId, actor },
+      });
+      return updated;
+    });
+  }
+
+  async approveRelease(awb: string, actor: Actor, correlationId?: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const { shipment, hold } = await this.requireOpenHold(tx, awb);
+      if (hold.releaseApprovedBy) {
+        throw new ConflictException(`Hold for ${awb} is already released`);
+      }
+      if (!hold.releaseRequestedBy || hold.releaseRejectedAt) {
+        throw new ConflictException(`No pending release request for ${awb}`);
+      }
+      if (hold.releaseRequestedBy === actor.actorId) {
+        throw new ForbiddenException('Maker-checker: the requester cannot approve their own release');
+      }
+      const now = new Date();
+      await tx.hold.update({
+        where: { id: hold.id },
+        data: {
+          releaseApprovedBy: actor.actorId,
+          releaseApprovedAt: now,
+        },
+      });
+      const updatedShipment = await tx.shipment.update({
+        where: { awb },
+        data: { status: ShipmentStatus.RELEASED },
+      });
+      const payload = {
+        requestedBy: hold.releaseRequestedBy,
+        approvedBy: actor.actorId,
+        actor,
+        status: ShipmentStatus.RELEASED,
+      };
+      // Plan name is hold.release.approved; shipment.released is the status event.
+      await this.writeDomainEvent(tx, {
+        type: HOLD_RELEASE_APPROVED,
+        awb,
+        shipmentVersion: shipment.version,
+        correlationId,
+        actor,
+        payload,
+      });
+      await this.writeDomainEvent(tx, {
+        type: SHIPMENT_RELEASED,
+        awb,
+        shipmentVersion: shipment.version,
+        correlationId,
+        actor,
+        payload,
+      });
+      return { holdId: hold.id, shipment: updatedShipment };
+    });
+  }
+
+  async rejectRelease(
+    awb: string,
+    actor: Actor,
+    reason?: string,
+    correlationId?: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const { shipment, hold } = await this.requireOpenHold(tx, awb);
+      if (hold.releaseApprovedBy) {
+        throw new ConflictException(`Hold for ${awb} is already released`);
+      }
+      if (!hold.releaseRequestedBy || hold.releaseRejectedAt) {
+        throw new ConflictException(`No pending release request for ${awb}`);
+      }
+      const now = new Date();
+      const updated = await tx.hold.update({
+        where: { id: hold.id },
+        data: {
+          releaseRejectedBy: actor.actorId,
+          releaseRejectedAt: now,
+          releaseRejectionReason: reason ?? null,
+        },
+      });
+      await this.writeDomainEvent(tx, {
+        type: HOLD_RELEASE_REJECTED,
+        awb,
+        shipmentVersion: shipment.version,
+        correlationId,
+        actor,
+        payload: {
+          requestedBy: hold.releaseRequestedBy,
+          rejectedBy: actor.actorId,
+          reason: reason ?? null,
+          actor,
+        },
+      });
+      return updated;
+    });
+  }
+
+  listHolds() {
+    return this.prisma.hold.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getHold(awb: string) {
+    const hold = await this.prisma.hold.findFirst({
+      where: { awb },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!hold) {
+      throw new NotFoundException(`No hold for ${awb}`);
+    }
+    return hold;
+  }
+
   private async applyTimeout(pendingId: string): Promise<boolean> {
     return this.prisma.$transaction(async (tx) => {
       const pending = await tx.pendingCheck.findUnique({
@@ -225,40 +418,85 @@ export class HoldService {
           awb,
           shipmentVersion,
           reasons: reasons as unknown as Prisma.InputJsonValue,
+          checklist: defaultChecklist() as unknown as Prisma.InputJsonValue,
         },
       });
     }
 
     const type = status === 'HELD' ? SHIPMENT_HELD : SHIPMENT_CLEARED;
-    const eventId = randomUUID();
-    const envelope: EventEnvelope<{
-      status: string;
-      reasons: string[];
-      checks: ReceivedCheck[];
-    }> = {
-      id: eventId,
+    await this.writeDomainEvent(tx, {
       type,
-      schemaVersion: 1,
-      occurredAt: new Date().toISOString(),
-      correlationId,
       awb,
       shipmentVersion,
+      correlationId,
       payload: { status, reasons, checks: received },
+    });
+  }
+
+  private async requireOpenHold(tx: Prisma.TransactionClient, awb: string) {
+    const shipment = await tx.shipment.findUnique({ where: { awb } });
+    if (!shipment) {
+      throw new NotFoundException(`Shipment ${awb} not found`);
+    }
+    const hold = await tx.hold.findFirst({
+      where: { awb, shipmentVersion: shipment.version },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!hold) {
+      throw new NotFoundException(`No hold for ${awb}`);
+    }
+    if (shipment.status === ShipmentStatus.RELEASED || hold.releaseApprovedBy) {
+      throw new ConflictException(`Shipment ${awb} is already released`);
+    }
+    if (shipment.status !== ShipmentStatus.HELD) {
+      throw new ConflictException(`Shipment ${awb} is ${shipment.status}, not HELD`);
+    }
+    return { shipment, hold };
+  }
+
+  private async writeDomainEvent(
+    tx: Prisma.TransactionClient,
+    params: {
+      type: string;
+      awb: string;
+      shipmentVersion: number;
+      correlationId?: string;
+      actor?: Actor;
+      payload: unknown;
+    },
+  ): Promise<void> {
+    const eventId = randomUUID();
+    const occurredAt = new Date().toISOString();
+    const actor: EventActor | undefined = params.actor
+      ? { actorId: params.actor.actorId, role: params.actor.role, at: params.actor.at }
+      : undefined;
+    const envelope: EventEnvelope = {
+      id: eventId,
+      type: params.type,
+      schemaVersion: 1,
+      occurredAt,
+      correlationId: params.correlationId?.trim() || eventId,
+      awb: params.awb,
+      shipmentVersion: params.shipmentVersion,
+      ...(actor ? { actor } : {}),
+      payload: params.payload,
     };
     await tx.outbox.create({
       data: {
         id: eventId,
-        aggregateId: awb,
-        type,
+        aggregateId: params.awb,
+        type: params.type,
         topic: HOLD_EVENTS_TOPIC,
         payload: envelope as unknown as Prisma.InputJsonValue,
       },
     });
-  }
-
-  listHolds() {
-    return this.prisma.hold.findMany({
-      orderBy: { createdAt: 'desc' },
+    await this.audit.append(tx, {
+      eventId,
+      type: params.type,
+      awb: params.awb,
+      actor: actor?.actorId ?? 'system',
+      ts: occurredAt,
+      payload: params.payload,
     });
   }
 }

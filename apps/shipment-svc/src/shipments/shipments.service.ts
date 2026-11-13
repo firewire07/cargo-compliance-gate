@@ -10,6 +10,7 @@ import {
   Shipment,
   ShipmentStatus,
 } from '../../generated/prisma';
+import { AuditService } from '../audit/audit.service';
 import { EventEnvelope, SHIPMENT_EVENTS_TOPIC, SHIPMENT_SUBMITTED } from '../events/envelope';
 import { EXPECTED_CHECKS, holdTimeoutSeconds } from '../hold/hold.aggregator';
 import { PrismaService } from '../prisma/prisma.service';
@@ -31,7 +32,10 @@ export type ShipmentSubmittedPayload = {
 
 @Injectable()
 export class ShipmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async create(dto: CreateShipmentDto, correlationId?: string) {
     const eventId = randomUUID();
@@ -117,6 +121,15 @@ export class ShipmentsService {
             deadline: new Date(Date.now() + timeoutSec * 1000),
             correlationId: corr,
           },
+        });
+
+        await this.audit.append(tx, {
+          eventId,
+          type: SHIPMENT_SUBMITTED,
+          awb: dto.awb,
+          actor: 'system',
+          ts: occurredAt,
+          payload: envelope.payload,
         });
 
         return shipment;

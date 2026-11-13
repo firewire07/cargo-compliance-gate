@@ -5,6 +5,7 @@ import {
   SCREENING_CHECKED,
   ScreeningCheckedPayload,
 } from '../events/envelope';
+import { AuditService } from '../audit/audit.service';
 import { EXPECTED_CHECKS } from './hold.aggregator';
 import { HoldService } from './hold.service';
 
@@ -39,6 +40,7 @@ describe('HoldService', () => {
     pendingCheck: { findMany: jest.fn(), findUnique: jest.fn() },
   };
 
+  const audit = { append: jest.fn() };
   let service: HoldService;
 
   beforeEach(() => {
@@ -48,7 +50,11 @@ describe('HoldService', () => {
     prisma.$transaction.mockImplementation(async (fn: (t: typeof tx) => unknown) =>
       fn(tx),
     );
-    service = new HoldService(prisma as unknown as PrismaService);
+    audit.append.mockResolvedValue(undefined);
+    service = new HoldService(
+      prisma as unknown as PrismaService,
+      audit as unknown as AuditService,
+    );
     tx.processedEvent.createMany.mockResolvedValue({ count: 1 });
     tx.shipment.findUnique.mockResolvedValue({
       awb: '020-20000001',
@@ -100,6 +106,10 @@ describe('HoldService', () => {
         }),
       }),
     );
+    expect(audit.append).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({ type: 'shipment.cleared', awb: '020-20000001', actor: 'system' }),
+    );
   });
 
   it('holds the shipment when a check is a HIT and writes a Hold row', async () => {
@@ -129,6 +139,10 @@ describe('HoldService', () => {
       }),
     });
     expect(tx.outbox.create.mock.calls[0][0].data.type).toBe('shipment.held');
+    expect(audit.append).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({ type: 'shipment.held', actor: 'system' }),
+    );
   });
 
   it('ignores stale results for an older shipmentVersion', async () => {
@@ -190,5 +204,9 @@ describe('HoldService', () => {
       }),
     });
     expect(tx.outbox.create.mock.calls[0][0].data.type).toBe('shipment.held');
+    expect(audit.append).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({ type: 'shipment.held', awb: '020-20000003', actor: 'system' }),
+    );
   });
 });

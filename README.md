@@ -141,6 +141,54 @@ Open `http://127.0.0.1:4300`, sign in with any username and a role, then submit 
 curl -sS http://127.0.0.1:4300/api/shipments/020-55555555
 ```
 
+
+## Analyst actions and audit (T6)
+
+Maker-checker release lives in the shipment-svc hold module. Identity comes from `x-user-id` and `x-roles` (the T7 gateway will set these). Only the `ANALYST` role can act. The requester cannot approve their own release (403). Each action writes state plus an outbox event with the actor, in one transaction. An append-only `audit_entries` table records every shipment-svc domain event in that same transaction, with `hash = sha256(prevHash + canonical payload)`. Appends take a Postgres advisory lock so the chain stays ordered. The chain is service-wide (not per AWB); `GET /audit/:awb` filters it.
+
+```sh
+# after a sanctioned shipment is HELD (see screening-svc):
+curl -sS http://127.0.0.1:3101/holds/020-40000001
+
+curl -sS -X PATCH http://127.0.0.1:3101/holds/020-40000001/checklist \
+  -H 'Content-Type: application/json' \
+  -H 'x-user-id: analyst-a' \
+  -H 'x-roles: ANALYST' \
+  -d '{"items":[
+    {"id":"identity-verified","done":true},
+    {"id":"documents-complete","done":true},
+    {"id":"sanctions-rationale","done":true,"note":"False-positive review documented"},
+    {"id":"goods-consistent","done":true}
+  ]}'
+
+curl -sS -X POST http://127.0.0.1:3101/holds/020-40000001/release-requests \
+  -H 'x-user-id: analyst-a' \
+  -H 'x-roles: ANALYST'
+
+# same analyst cannot approve (403)
+curl -sS -o /dev/stderr -w '%{http_code}\n' -X POST http://127.0.0.1:3101/holds/020-40000001/release-approvals \
+  -H 'x-user-id: analyst-a' \
+  -H 'x-roles: ANALYST'
+
+curl -sS -X POST http://127.0.0.1:3101/holds/020-40000001/release-approvals \
+  -H 'x-user-id: analyst-b' \
+  -H 'x-roles: ANALYST'
+
+curl -sS http://127.0.0.1:3101/shipments/020-40000001
+curl -sS http://127.0.0.1:3101/audit/020-40000001
+curl -sS http://127.0.0.1:3101/audit/verify
+```
+
+To show tamper detection (demo only; restore the row afterwards):
+
+```sh
+# peek at one row, change payload, verify, then restore
+docker compose exec -T postgres psql -U cargo -d cargo_compliance \
+  -c "SET search_path TO shipment; SELECT seq, type, hash FROM audit_entries ORDER BY seq;"
+```
+
+Optional reject: `POST /holds/:awb/release-rejections` with `{ "reason": "..." }` and the same analyst headers.
+
 ## Run tasks
 
 To run tasks with Nx use:

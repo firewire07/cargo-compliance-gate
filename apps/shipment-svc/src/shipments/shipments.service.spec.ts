@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma, ShipmentStatus } from '../../generated/prisma';
 import { SHIPMENT_SUBMITTED } from '../events/envelope';
+import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { ShipmentsService } from './shipments.service';
@@ -29,6 +30,7 @@ describe('ShipmentsService', () => {
     shipment: { findUnique: jest.fn(), findMany: jest.fn() },
   };
 
+  const audit = { append: jest.fn() };
   let service: ShipmentsService;
 
   beforeEach(() => {
@@ -36,7 +38,11 @@ describe('ShipmentsService', () => {
     prisma.$transaction.mockImplementation(async (fn: (t: typeof tx) => unknown) =>
       fn(tx),
     );
-    service = new ShipmentsService(prisma as unknown as PrismaService);
+    audit.append.mockResolvedValue(undefined);
+    service = new ShipmentsService(
+      prisma as unknown as PrismaService,
+      audit as unknown as AuditService,
+    );
   });
 
   it('creates the shipment, parties and outbox row in one transaction', async () => {
@@ -110,6 +116,14 @@ describe('ShipmentsService', () => {
         deadline: expect.any(Date),
       }),
     });
+    expect(audit.append).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        type: SHIPMENT_SUBMITTED,
+        awb: dto.awb,
+        actor: 'system',
+      }),
+    );
     expect(result).toBe(created);
   });
 

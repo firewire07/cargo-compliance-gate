@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { AuditController } from '../audit/audit.controller';
+import { AuditService } from '../audit/audit.service';
 import { HoldConsumer } from '../hold/hold.consumer';
 import { HoldController } from '../hold/hold.controller';
 import { HoldService } from '../hold/hold.service';
@@ -11,9 +13,10 @@ import { ShipmentsService } from '../shipments/shipments.service';
 
 @Module({
   imports: [],
-  controllers: [ShipmentsController, HoldController],
+  controllers: [ShipmentsController, HoldController, AuditController],
   providers: [
     PrismaService,
+    AuditService,
     ShipmentsService,
     HoldService,
     HoldConsumer,
