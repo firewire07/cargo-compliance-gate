@@ -11,8 +11,9 @@ export class ShipmentsController {
   create(
     @Body() dto: CreateShipmentDto,
     @Headers('x-correlation-id') correlationId?: string,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    return this.shipments.create(dto, correlationId);
+    return this.shipments.create(dto, correlationId, idempotencyKey);
   }
 
   @Get()

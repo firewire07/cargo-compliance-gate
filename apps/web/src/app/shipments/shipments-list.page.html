@@ -2,13 +2,13 @@
   <mat-card-header>
     <mat-card-title>Shipments</mat-card-title>
     <mat-card-subtitle>
-      Status is loaded once from shipment-svc. Live SSE updates arrive after the
-      T7 gateway.
+      The list loads from the gateway, then status updates live over SSE
+      (CHECKING → CLEARED or HELD). The 202 from submit is not the final status.
     </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (createdAwb) {
-      <p class="notice">Created shipment {{ createdAwb }}.</p>
+      <p class="notice">Created shipment {{ createdAwb }}. Waiting for the live status update.</p>
     }
 
     <div class="lookup">
@@ -47,10 +47,7 @@
     </table>
 
     @if (items().length === 0) {
-      <p class="empty">
-        No shipments in this session yet. Submit one or look up an existing AWB.
-        shipment-svc has no list endpoint yet, so this table is a shell.
-      </p>
+      <p class="empty">No shipments yet. Submit one or look up an existing AWB.</p>
     }
   </mat-card-content>
 </mat-card>

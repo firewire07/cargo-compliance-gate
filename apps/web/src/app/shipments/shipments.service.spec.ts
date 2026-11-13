@@ -68,4 +68,24 @@ describe('ShipmentsService', () => {
     const nextSubmission = service.peekOrCreateIdempotencyKey();
     expect(nextSubmission).not.toBe(firstKey);
   });
+
+  it('updates a listed shipment status from a live SSE event', () => {
+    service.applyEvent({
+      id: 'evt-1',
+      type: 'shipment.submitted',
+      awb: created.awb,
+    });
+    // not in the list yet — triggers GET /api/shipments/:awb
+    const lookup = http.expectOne(`/api/shipments/${created.awb}`);
+    lookup.flush({ ...created, status: 'CHECKING' });
+    expect(service.items()[0].status).toBe('CHECKING');
+
+    service.applyEvent({
+      id: 'evt-2',
+      type: 'shipment.cleared',
+      awb: created.awb,
+    });
+    expect(service.items()[0].status).toBe('CLEARED');
+    http.expectNone(`/api/shipments/${created.awb}`);
+  });
 });

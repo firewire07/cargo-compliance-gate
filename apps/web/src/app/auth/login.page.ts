@@ -1,13 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from './auth.service';
-import { UserRole } from '../models/user.model';
 
 @Component({
   selector: 'app-login-page',
@@ -16,7 +15,6 @@ import { UserRole } from '../models/user.model';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatButtonModule,
   ],
   templateUrl: './login.page.html',
@@ -27,10 +25,11 @@ export class LoginPage {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
-  readonly roles: UserRole[] = ['operator', 'analyst'];
+  readonly errorMessage = signal<string | null>(null);
+  readonly submitting = signal(false);
   readonly form = this.fb.nonNullable.group({
     username: ['', Validators.required],
-    role: this.fb.nonNullable.control<UserRole>('operator', Validators.required),
+    password: ['', Validators.required],
   });
 
   submit(): void {
@@ -38,8 +37,20 @@ export class LoginPage {
       this.form.markAllAsTouched();
       return;
     }
-    const { username, role } = this.form.getRawValue();
-    this.auth.login(username, role);
-    void this.router.navigateByUrl('/shipments');
+    this.submitting.set(true);
+    this.errorMessage.set(null);
+    const { username, password } = this.form.getRawValue();
+    this.auth.login(username, password).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        void this.router.navigateByUrl('/shipments');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        this.errorMessage.set(
+          err.error?.message ?? err.message ?? 'Could not sign in',
+        );
+      },
+    });
   }
 }

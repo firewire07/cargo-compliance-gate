@@ -22,3 +22,8 @@ export function parseCookies(header?: string): Record<string, string> {
 export function authCookieHeader(token: string, maxAgeSec: number): string {
   return `${AUTH_COOKIE}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAgeSec}`;
 }
+
+export function clearAuthCookieHeader(): string {
+  return `${AUTH_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`;
+}
+

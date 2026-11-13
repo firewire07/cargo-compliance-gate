@@ -121,24 +121,42 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 ## web
 
-Angular app on `127.0.0.1:4300` (4200 is left free for cargo-dashboard) with login, a shipment submit form and a shipments list shell.
+Angular app on `127.0.0.1:4300` (4200 is left free for cargo-dashboard) with real gateway login, a shipment submit form and a live shipments list.
 
-- **Idempotency-Key:** the form sends a UUID per submission and reuses it if that attempt is retried, so a double-click or a retry does not create two shipments once the server honours the header.
-- **Dev proxy:** `/api/shipments` is forwarded to shipment-svc at `127.0.0.1:3101` (the `/api` prefix is stripped). In T7 this proxy will point at the api-gateway instead.
+- **Login:** `POST /api/auth/login` against the api-gateway. The access token is kept in `sessionStorage` and sent as `Authorization: Bearer`. The gateway also sets an HttpOnly cookie; the live list does not rely on it, because EventSource cannot send an Authorization header.
+- **Dev proxy:** `/api` is forwarded to the api-gateway at `127.0.0.1:3100` (the `/api` prefix is stripped).
+- **Idempotency-Key:** the form sends a UUID per submission and reuses it if that attempt is retried. shipment-svc stores the key, a hash of the body and the original response: the same key and body returns that response, the same key with a different body returns 409.
+- **Live list:** `GET /api/shipments` loads the table, then `POST /api/auth/stream-token` plus `GET /api/stream?token=...` (SSE) updates status (CHECKING → CLEARED or HELD) without a manual refresh. On disconnect the page reloads the list and fetches a new stream token. The subscription is closed when you leave the page.
 
-Login is a local placeholder (username + role stored in the browser). Real JWT login comes with the T7 gateway. The list page loads status once; live SSE updates also land in T7.
+Seeded demo users: `operator` / `operator-demo`, `analyst-a` / `analyst-a-demo`, `analyst-b` / `analyst-b-demo`.
 
 ```sh
 npx nx test web
 npx nx build web
 npx nx serve shipment-svc
+npx nx serve screening-svc
+npx nx serve api-gateway
 npx nx serve web
 ```
 
-Open `http://127.0.0.1:4300`, sign in with any username and a role, then submit a shipment. Confirm with:
+Open `http://127.0.0.1:4300`, sign in as `operator` / `operator-demo`, submit a shipment, and watch the list status change.
 
 ```sh
-curl -sS http://127.0.0.1:4300/api/shipments/020-55555555
+# login and submit through the web proxy (same paths the UI uses)
+TOKEN=$(curl -sS -X POST http://127.0.0.1:4300/api/auth/login   -H 'Content-Type: application/json'   -d '{"username":"operator","password":"operator-demo"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+
+curl -sS -X POST http://127.0.0.1:4300/api/shipments   -H "Authorization: Bearer $TOKEN"   -H 'Content-Type: application/json'   -H 'Idempotency-Key: demo-web-1'   -d '{
+    "awb": "020-60000001",
+    "origin": "KUL",
+    "destination": "AMS",
+    "pieces": 2,
+    "weight": 15.5,
+    "goodsDescription": "Electronic parts",
+    "hsCode": "8542.31",
+    "routing": "KUL-AMS",
+    "shipper": {"name": "Acme Forwarding", "country": "MY"},
+    "consignee": {"name": "Rotterdam Imports", "country": "NL"}
+  }'
 ```
 
 

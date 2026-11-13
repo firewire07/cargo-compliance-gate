@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -25,15 +26,24 @@ import { ShipmentStatus } from '../models/shipment.model';
   templateUrl: './shipments-list.page.html',
   styleUrl: './shipments-list.page.scss',
 })
-export class ShipmentsListPage {
+export class ShipmentsListPage implements OnInit, OnDestroy {
   private readonly shipments = inject(ShipmentsService);
   private readonly route = inject(ActivatedRoute);
+  private liveSub?: Subscription;
 
   readonly items = this.shipments.items;
   readonly columns = ['awb', 'route', 'status', 'version'];
   readonly lookupAwb = signal('');
   readonly lookupError = signal<string | null>(null);
   readonly createdAwb = this.route.snapshot.queryParamMap.get('created');
+
+  ngOnInit(): void {
+    this.liveSub = this.shipments.connectLive().subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.liveSub?.unsubscribe();
+  }
 
   chipClass(status: ShipmentStatus): string {
     return `status-${status.toLowerCase()}`;

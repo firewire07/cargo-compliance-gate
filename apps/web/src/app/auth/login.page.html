@@ -2,7 +2,9 @@
   <mat-card-header>
     <mat-card-title>Sign in</mat-card-title>
     <mat-card-subtitle>
-      Local placeholder only. A real gateway login arrives in T7.
+      Use a seeded demo account. The gateway issues a JWT and an HttpOnly cookie.
+      Demo: operator / operator-demo, analyst-a / analyst-a-demo, analyst-b /
+      analyst-b-demo.
     </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
@@ -16,15 +18,25 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Role</mat-label>
-        <mat-select formControlName="role">
-          @for (role of roles; track role) {
-            <mat-option [value]="role">{{ role }}</mat-option>
-          }
-        </mat-select>
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <mat-error>Password is required</mat-error>
+        }
       </mat-form-field>
 
-      <button mat-flat-button type="submit">Continue</button>
+      @if (errorMessage(); as message) {
+        <p class="error">{{ message }}</p>
+      }
+
+      <button mat-flat-button type="submit" [disabled]="submitting()">
+        Sign in
+      </button>
     </form>
   </mat-card-content>
 </mat-card>

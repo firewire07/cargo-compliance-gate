@@ -142,3 +142,14 @@ model Outbox {
   @@map("outbox")
   @@schema("shipment")
 }
+
+model IdempotencyKey {
+  key         String   @id
+  requestHash String
+  statusCode  Int
+  response    Json
+  createdAt   DateTime @default(now())
+
+  @@map("idempotency_keys")
+  @@schema("shipment")
+}

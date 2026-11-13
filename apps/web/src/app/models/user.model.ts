@@ -1,6 +1,12 @@
-export type UserRole = 'operator' | 'analyst';
-
 export interface SessionUser {
+  id: string;
   username: string;
-  role: UserRole;
+  roles: string[];
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+  user: SessionUser;
 }

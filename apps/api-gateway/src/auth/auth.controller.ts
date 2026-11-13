@@ -2,7 +2,7 @@ import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './auth.guard';
-import { authCookieHeader } from './cookies';
+import { authCookieHeader, clearAuthCookieHeader } from './cookies';
 import { LoginDto } from './dto/login.dto';
 import type { AccessTokenPayload } from './jwt';
 
@@ -21,5 +21,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   streamToken(@Req() req: Request & { user?: AccessTokenPayload }) {
     return this.auth.issueStreamToken(req.user!);
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.setHeader('Set-Cookie', clearAuthCookieHeader());
+    return { ok: true };
   }
 }

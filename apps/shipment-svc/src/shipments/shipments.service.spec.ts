@@ -4,6 +4,7 @@ import { SHIPMENT_SUBMITTED } from '../events/envelope';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
+import { hashRequestBody } from './idempotency';
 import { ShipmentsService } from './shipments.service';
 
 const dto: CreateShipmentDto = {
@@ -24,10 +25,12 @@ describe('ShipmentsService', () => {
     shipment: { create: jest.fn() },
     outbox: { create: jest.fn() },
     pendingCheck: { create: jest.fn() },
+    idempotencyKey: { create: jest.fn() },
   };
   const prisma = {
     $transaction: jest.fn(),
     shipment: { findUnique: jest.fn(), findMany: jest.fn() },
+    idempotencyKey: { findUnique: jest.fn() },
   };
 
   const audit = { append: jest.fn() };
@@ -161,5 +164,56 @@ describe('ShipmentsService', () => {
     await expect(service.findByAwb('missing')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('returns the original shipment for the same Idempotency-Key and body', async () => {
+    const stored = { id: 'shp-1', awb: dto.awb, status: 'CHECKING', parties: [] };
+    prisma.idempotencyKey.findUnique.mockResolvedValue({
+      key: 'idem-1',
+      requestHash: hashRequestBody(dto),
+      response: stored,
+    });
+
+    const first = await service.create(dto, 'corr-1', 'idem-1');
+    const second = await service.create(dto, 'corr-2', 'idem-1');
+
+    expect(first).toEqual(stored);
+    expect(second).toEqual(stored);
+    expect(tx.shipment.create).not.toHaveBeenCalled();
+    expect(tx.outbox.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects the same Idempotency-Key when the body is different', async () => {
+    prisma.idempotencyKey.findUnique.mockResolvedValue({
+      key: 'idem-1',
+      requestHash: hashRequestBody(dto),
+      response: { awb: dto.awb },
+    });
+
+    await expect(
+      service.create({ ...dto, pieces: 99 }, 'corr-1', 'idem-1'),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(tx.shipment.create).not.toHaveBeenCalled();
+  });
+
+  it('stores the key with the first successful create', async () => {
+    const created = { id: 'shp-1', awb: dto.awb, version: 1, parties: [] };
+    prisma.idempotencyKey.findUnique.mockResolvedValue(null);
+    tx.shipment.create.mockResolvedValue(created);
+    tx.outbox.create.mockResolvedValue({});
+    tx.pendingCheck.create.mockResolvedValue({});
+    tx.idempotencyKey.create.mockResolvedValue({});
+
+    const result = await service.create(dto, 'corr-1', 'idem-new');
+
+    expect(result).toBe(created);
+    expect(tx.idempotencyKey.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        key: 'idem-new',
+        requestHash: hashRequestBody(dto),
+        statusCode: 202,
+        response: created,
+      }),
+    });
   });
 });
