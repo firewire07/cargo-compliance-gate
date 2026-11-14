@@ -270,6 +270,24 @@ STREAM=$(curl -sS -X POST http://127.0.0.1:3100/auth/stream-token \
 curl -N "http://127.0.0.1:3100/stream?token=$STREAM"
 ```
 
+## End-to-end test (T8)
+
+One Jest command talks only to the api-gateway at `127.0.0.1:3100` and checks the thin path: a clean shipment is CLEARED, a sanctioned consignee is HELD, maker-checker release (operator 403, analyst A cannot approve their own request, analyst B can), the audit chain verifies, an `Idempotency-Key` replay does not create a duplicate, and the SSE stream receives the status events. Each run uses unique AWBs. The test polls for status changes with a timeout; it does not use fixed sleeps.
+
+Start the stack first, then run the test:
+
+```sh
+docker compose up -d
+npx nx serve shipment-svc
+npx nx serve screening-svc
+npx nx serve api-gateway
+npm run e2e
+```
+
+Override the gateway URL with `GATEWAY_URL` if needed (`http://127.0.0.1:3100` is the default). The Angular app on port 4300 is not required.
+
+A fail-closed timeout (screening-svc stopped, shipment becomes HELD with `CHECK_TIMEOUT`) is still a manual check, because stopping screening-svc would break the rest of this test. To try it: stop screening-svc, submit a shipment, and after `HOLD_TIMEOUT_SECONDS` (default 30) the shipment should be HELD with reasons `CHECK_TIMEOUT:DG`, `CHECK_TIMEOUT:EMBARGO` and `CHECK_TIMEOUT:SANCTIONS`.
+
 ## Run tasks
 
 To run tasks with Nx use:

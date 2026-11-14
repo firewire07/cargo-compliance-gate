@@ -2,7 +2,9 @@
   "name": "@cargo-compliance-gate/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "e2e": "jest --config e2e/jest.config.ts --runInBand"
+  },
   "private": true,
   "devDependencies": {
     "@angular-devkit/core": "~22.2.0",
