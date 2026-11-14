@@ -14,7 +14,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { checkDg } from '../rules/dg';
 import { checkEmbargo } from '../rules/embargo';
-import { screenSanctions } from '../rules/sanctions';
+import { parseSanctionsMode, screenSanctions } from '../rules/sanctions';
 import { RuleResult } from '../rules/types';
 
 export type HandleResult =
@@ -166,7 +166,7 @@ export class ScreeningHandler {
           goodsDescription: payload.goodsDescription,
           hsCode: payload.hsCode,
         },
-        'name-only',
+        parseSanctionsMode(process.env.SANCTIONS_MODE),
       ),
     ];
   }

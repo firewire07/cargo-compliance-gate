@@ -1,16 +1,142 @@
 {
   "ruleVersion": "sanctions-name-only.v1",
+  "contextualRuleVersion": "sanctions-contextual.v1",
   "threshold": 0.85,
   "entries": [
-    { "name": "Viktor Petrov Trading", "country": "RU" },
-    { "name": "Northern Star Logistics", "country": "KP" },
-    { "name": "Al-Majid Export House", "country": "SY" },
-    { "name": "Golden River Shipping", "country": "IR" },
-    { "name": "Red Banner Holdings", "country": "RU" },
-    { "name": "Pyongyang Freight Agency", "country": "KP" },
-    { "name": "Caspian Shadow LLC", "country": "IR" },
-    { "name": "Eastern Promise Traders", "country": "CN" },
-    { "name": "Midnight Cargo Services", "country": "AE" },
-    { "name": "Sanctions Test Consignee", "country": "RU" }
+    {
+      "name": "Viktor Petrov Trading",
+      "country": "RU",
+      "address": "14 Nevsky Lane, Office 9, Saint Petersburg",
+      "registrationDate": "2009-04-17",
+      "riskHsPrefixes": [
+        "9301",
+        "9302",
+        "8802"
+      ],
+      "riskGoodsKeywords": [
+        "military",
+        "munitions",
+        "avionics"
+      ]
+    },
+    {
+      "name": "Northern Star Logistics",
+      "country": "KP",
+      "address": "22 Kumsusan Road, Pyongyang",
+      "registrationDate": "2011-08-02",
+      "riskHsPrefixes": [
+        "8802",
+        "8526"
+      ],
+      "riskGoodsKeywords": [
+        "radar",
+        "avionics",
+        "missile"
+      ]
+    },
+    {
+      "name": "Al-Majid Export House",
+      "country": "SY",
+      "address": "5 Straight Street, Damascus",
+      "registrationDate": "2004-11-23",
+      "riskHsPrefixes": [
+        "9306"
+      ],
+      "riskGoodsKeywords": [
+        "ordnance",
+        "chemicals"
+      ]
+    },
+    {
+      "name": "Golden River Shipping",
+      "country": "IR",
+      "address": "80 Valiasr Avenue, Tehran",
+      "registrationDate": "2007-01-30",
+      "riskHsPrefixes": [
+        "2709",
+        "8901"
+      ],
+      "riskGoodsKeywords": [
+        "crude",
+        "tanker parts"
+      ]
+    },
+    {
+      "name": "Red Banner Holdings",
+      "country": "RU",
+      "address": "3 Tverskaya Street, Moscow",
+      "registrationDate": "2013-06-11",
+      "riskHsPrefixes": [
+        "9301"
+      ],
+      "riskGoodsKeywords": [
+        "arms",
+        "military"
+      ]
+    },
+    {
+      "name": "Pyongyang Freight Agency",
+      "country": "KP",
+      "address": "9 Sungri Street, Pyongyang",
+      "registrationDate": "1998-02-14",
+      "riskHsPrefixes": [
+        "8525"
+      ],
+      "riskGoodsKeywords": [
+        "communications equipment"
+      ]
+    },
+    {
+      "name": "Caspian Shadow LLC",
+      "country": "IR",
+      "address": "16 Harbour Yard, Bandar Anzali",
+      "registrationDate": "2016-09-05",
+      "riskHsPrefixes": [
+        "8481"
+      ],
+      "riskGoodsKeywords": [
+        "valves",
+        "pump parts"
+      ]
+    },
+    {
+      "name": "Eastern Promise Traders",
+      "country": "CN",
+      "address": "41 Bund Warehouse, Dalian",
+      "registrationDate": "2010-12-19",
+      "riskHsPrefixes": [
+        "8542",
+        "8523"
+      ],
+      "riskGoodsKeywords": [
+        "controlled electronics",
+        "encryption"
+      ]
+    },
+    {
+      "name": "Midnight Cargo Services",
+      "country": "AE",
+      "address": "27 Al Suq Street, Ajman",
+      "registrationDate": "2015-03-08",
+      "riskHsPrefixes": [
+        "9306"
+      ],
+      "riskGoodsKeywords": [
+        "re-export",
+        "dual-use"
+      ]
+    },
+    {
+      "name": "Sanctions Test Consignee",
+      "country": "RU",
+      "address": "1 Evaluation Way, Murmansk",
+      "registrationDate": "2020-01-01",
+      "riskHsPrefixes": [
+        "9999"
+      ],
+      "riskGoodsKeywords": [
+        "evaluation only"
+      ]
+    }
   ]
 }

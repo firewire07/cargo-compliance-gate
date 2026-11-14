@@ -1,17 +1,34 @@
 import { loadCatalog } from './load-catalog';
 import { RuleResult } from './types';
 
-export type SanctionsEntry = { name: string; country?: string };
+export type PartyInput = {
+  name?: string;
+  country?: string;
+  address?: string;
+  dateOfBirth?: string;
+  registrationDate?: string;
+};
+
+export type SanctionsEntry = {
+  name: string;
+  country?: string;
+  address?: string;
+  dateOfBirth?: string;
+  registrationDate?: string;
+  riskHsPrefixes?: string[];
+  riskGoodsKeywords?: string[];
+};
 
 export type SanctionsCatalog = {
   ruleVersion: string;
+  contextualRuleVersion?: string;
   threshold: number;
   entries: SanctionsEntry[];
 };
 
 export type SanctionsInput = {
-  shipper?: { name?: string; country?: string } | null;
-  consignee?: { name?: string; country?: string } | null;
+  shipper?: PartyInput | null;
+  consignee?: PartyInput | null;
   origin?: string | null;
   destination?: string | null;
   routing?: string | null;
@@ -203,15 +220,300 @@ export function screenSanctionsNameOnly(
   };
 }
 
-// Seam for T8: contextual scoring will combine name score with routing, goods, HS code and country.
+export function parseSanctionsMode(value?: string | null): SanctionsMode {
+  return value?.trim().toLowerCase() === 'contextual' ? 'contextual' : 'name-only';
+}
+
+/** Airports used in the local demo and evaluation routes, mapped to ISO countries. */
+const AIRPORT_COUNTRY: Record<string, string> = {
+  AMS: 'NL',
+  BKK: 'TH',
+  CDG: 'FR',
+  DAM: 'SY',
+  DOH: 'QA',
+  DXB: 'AE',
+  FNJ: 'KP',
+  FRA: 'DE',
+  HKG: 'HK',
+  IKA: 'IR',
+  IST: 'TR',
+  JFK: 'US',
+  KUL: 'MY',
+  LED: 'RU',
+  LHR: 'GB',
+  ORD: 'US',
+  PVG: 'CN',
+  SHJ: 'AE',
+  SIN: 'SG',
+  SVO: 'RU',
+  SYX: 'CN',
+};
+
+const COUNTRY_WEIGHT = 0.12;
+const ADDRESS_WEIGHT = 0.1;
+const DATE_WEIGHT = 0.12;
+const ROUTE_WEIGHT = 0.08;
+const GOODS_WEIGHT = 0.05;
+const ADDRESS_MATCH_MIN = 0.85;
+const ADDRESS_CONFLICT_MAX = 0.55;
+/** Above this, a name is treated as near-exact; address format differences are ignored. */
+const NEAR_EXACT_NAME = 0.97;
+
+export type ContextSignal = 'match' | 'conflict' | 'unknown';
+
+export type ContextBreakdown = {
+  country: ContextSignal;
+  address: ContextSignal;
+  date: ContextSignal;
+  route: ContextSignal;
+  goods: ContextSignal;
+  adjustment: number;
+  confirms: number;
+  conflicts: number;
+};
+
+function normalizeCountry(value?: string | null): string {
+  return value?.trim().toUpperCase() ?? '';
+}
+
+function normalizeText(value?: string | null): string {
+  return normalizeName(value);
+}
+
+function normalizeDate(value?: string | null): string {
+  if (!value) {
+    return '';
+  }
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?/);
+  return match ? trimmed.slice(0, 10) : '';
+}
+
+function countrySignal(partyCountry?: string, entryCountry?: string): ContextSignal {
+  const left = normalizeCountry(partyCountry);
+  const right = normalizeCountry(entryCountry);
+  if (!left || !right) {
+    return 'unknown';
+  }
+  return left === right ? 'match' : 'conflict';
+}
+
+function addressSignal(partyAddress?: string, entryAddress?: string): ContextSignal {
+  const left = normalizeText(partyAddress);
+  const right = normalizeText(entryAddress);
+  if (!left || !right) {
+    return 'unknown';
+  }
+  const score = similarity(left, right);
+  if (score >= ADDRESS_MATCH_MIN) {
+    return 'match';
+  }
+  if (score <= ADDRESS_CONFLICT_MAX) {
+    return 'conflict';
+  }
+  return 'unknown';
+}
+
+function dateSignal(party: PartyInput | undefined, entry: SanctionsEntry): ContextSignal {
+  const partyDate = normalizeDate(party?.registrationDate) || normalizeDate(party?.dateOfBirth);
+  const entryDate =
+    normalizeDate(entry.registrationDate) || normalizeDate(entry.dateOfBirth);
+  if (!partyDate || !entryDate) {
+    return 'unknown';
+  }
+  return partyDate === entryDate ? 'match' : 'conflict';
+}
+
+export function countriesFromRoute(
+  origin?: string | null,
+  destination?: string | null,
+  routing?: string | null,
+): Set<string> {
+  const tokens = [origin, destination, ...(routing ?? '').split(/[^A-Za-z0-9]+/)]
+    .map((token) => token?.trim().toUpperCase())
+    .filter((token): token is string => !!token);
+  const countries = new Set<string>();
+  for (const token of tokens) {
+    if (token.length === 2) {
+      countries.add(token);
+    } else if (token.length === 3 && AIRPORT_COUNTRY[token]) {
+      countries.add(AIRPORT_COUNTRY[token]);
+    }
+  }
+  return countries;
+}
+
+function routeSignal(input: SanctionsInput, entryCountry?: string): ContextSignal {
+  const country = normalizeCountry(entryCountry);
+  if (!country) {
+    return 'unknown';
+  }
+  return countriesFromRoute(input.origin, input.destination, input.routing).has(country)
+    ? 'match'
+    : 'unknown';
+}
+
+function goodsSignal(input: SanctionsInput, entry: SanctionsEntry): ContextSignal {
+  const hs = (input.hsCode ?? '').replace(/[^0-9]/g, '');
+  if (hs && entry.riskHsPrefixes?.some((prefix) => hs.startsWith(prefix.replace(/[^0-9]/g, '')))) {
+    return 'match';
+  }
+  const goods = normalizeText(input.goodsDescription);
+  if (
+    goods &&
+    entry.riskGoodsKeywords?.some((keyword) => goods.includes(normalizeText(keyword)))
+  ) {
+    return 'match';
+  }
+  return 'unknown';
+}
+
+function countSignals(
+  breakdown: Pick<ContextBreakdown, 'country' | 'address' | 'date' | 'route' | 'goods'>,
+  value: ContextSignal,
+): number {
+  return [breakdown.country, breakdown.address, breakdown.date, breakdown.route, breakdown.goods].filter(
+    (signal) => signal === value,
+  ).length;
+}
+
+export function scoreContext(
+  party: PartyInput,
+  input: SanctionsInput,
+  entry: SanctionsEntry,
+  nameScoreValue: number,
+): ContextBreakdown {
+  const country = countrySignal(party.country, entry.country);
+  // Near-exact names skip address conflicts: street format is easy to spoof or vary.
+  const rawAddress = addressSignal(party.address, entry.address);
+  const address =
+    nameScoreValue >= NEAR_EXACT_NAME && rawAddress === 'conflict' ? 'unknown' : rawAddress;
+  const date = dateSignal(party, entry);
+  const route = routeSignal(input, entry.country);
+  const goods = goodsSignal(input, entry);
+  let adjustment = 0;
+  if (country === 'match') adjustment += COUNTRY_WEIGHT;
+  if (country === 'conflict') adjustment -= COUNTRY_WEIGHT;
+  if (address === 'match') adjustment += ADDRESS_WEIGHT;
+  if (address === 'conflict') adjustment -= ADDRESS_WEIGHT;
+  if (date === 'match') adjustment += DATE_WEIGHT;
+  if (date === 'conflict') adjustment -= DATE_WEIGHT;
+  if (route === 'match') adjustment += ROUTE_WEIGHT;
+  if (goods === 'match') adjustment += GOODS_WEIGHT;
+  const breakdown = { country, address, date, route, goods, adjustment, confirms: 0, conflicts: 0 };
+  breakdown.confirms = countSignals(breakdown, 'match');
+  breakdown.conflicts = countSignals(breakdown, 'conflict');
+  return breakdown;
+}
+
+function clampScore(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+export type ContextualMatch = NameMatch & {
+  entry: SanctionsEntry;
+  nameScore: number;
+  finalScore: number;
+  context: ContextBreakdown;
+};
+
+export function bestContextualMatch(
+  input: SanctionsInput,
+  catalog: SanctionsCatalog,
+): ContextualMatch | undefined {
+  const parties: { party: 'shipper' | 'consignee'; data: PartyInput }[] = [];
+  if (input.shipper?.name) {
+    parties.push({ party: 'shipper', data: input.shipper });
+  }
+  if (input.consignee?.name) {
+    parties.push({ party: 'consignee', data: input.consignee });
+  }
+  let best: ContextualMatch | undefined;
+  for (const party of parties) {
+    for (const entry of catalog.entries) {
+      const name = nameScore(party.data.name ?? '', entry.name);
+      const context = scoreContext(party.data, input, entry, name);
+      const finalScore = clampScore(name + context.adjustment);
+      const candidate: ContextualMatch = {
+        party: party.party,
+        partyName: party.data.name ?? '',
+        matchedName: entry.name,
+        score: finalScore,
+        entry,
+        nameScore: name,
+        finalScore,
+        context,
+      };
+      if (
+        !best ||
+        candidate.finalScore > best.finalScore ||
+        (candidate.finalScore === best.finalScore && candidate.nameScore > best.nameScore)
+      ) {
+        best = candidate;
+      }
+    }
+  }
+  return best;
+}
+
+function contextReasons(match: ContextualMatch, threshold: number): string[] {
+  const reasons: string[] = [
+    `${match.party} "${match.partyName}" name score ${match.nameScore.toFixed(2)} against "${match.matchedName}" (contextual score ${match.finalScore.toFixed(2)}, threshold ${threshold})`,
+  ];
+  const labels: Record<keyof Pick<ContextBreakdown, 'country' | 'address' | 'date' | 'route' | 'goods'>, string> = {
+    country: 'country',
+    address: 'address',
+    date: 'date of birth or registration',
+    route: 'route',
+    goods: 'commodity or HS code',
+  };
+  for (const key of ['country', 'address', 'date', 'route', 'goods'] as const) {
+    const signal = match.context[key];
+    if (signal === 'match') {
+      reasons.push(`supporting ${labels[key]}`);
+    } else if (signal === 'conflict') {
+      reasons.push(`conflicting ${labels[key]}`);
+    }
+  }
+  return reasons;
+}
+
+/**
+ * Combines the name score with explainable context. Missing fields are ignored
+ * (not a penalty). A near-exact listed name with only a country mismatch still
+ * hits, because a front address is cheap to fake. Conflicting registration or
+ * date of birth can take a look-alike below the threshold.
+ */
 export function screenSanctionsContextual(
   input: SanctionsInput,
   catalog = loadSanctionsCatalog(),
 ): RuleResult {
-  const result = screenSanctionsNameOnly(input, catalog);
+  const match = bestContextualMatch(input, catalog);
+  const score = match?.finalScore ?? 0;
+  const hit = !!match && score >= catalog.threshold;
+  const ruleVersion = catalog.contextualRuleVersion ?? 'sanctions-contextual.v1';
   return {
-    ...result,
-    inputs: { ...result.inputs, mode: 'contextual', contextual: 'not-implemented' },
+    check: 'SANCTIONS',
+    outcome: hit ? 'HIT' : 'PASS',
+    ruleVersion,
+    score,
+    reasons: hit && match ? contextReasons(match, catalog.threshold) : [],
+    inputs: {
+      shipper: input.shipper ?? null,
+      consignee: input.consignee ?? null,
+      mode: 'contextual',
+      match: match
+        ? {
+            party: match.party,
+            partyName: match.partyName,
+            matchedName: match.matchedName,
+            nameScore: match.nameScore,
+            finalScore: match.finalScore,
+            context: match.context,
+          }
+        : null,
+      threshold: catalog.threshold,
+    },
   };
 }
 

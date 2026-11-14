@@ -93,7 +93,7 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 ## screening-svc
 
-NestJS service on `127.0.0.1:3102` that consumes `shipment.events`, runs DG, embargo and name-only sanctions checks, and publishes `screening.checked` (one event per check) through an outbox relay.
+NestJS service on `127.0.0.1:3102` that consumes `shipment.events`, runs DG, embargo and sanctions checks, and publishes `screening.checked` (one event per check) through an outbox relay. Sanctions default to name-only; set `SANCTIONS_MODE=contextual` to use country, address, date of birth or registration, route and commodity as extra signals. See `docs/evaluation.md`.
 
 - **Idempotency:** the consumer writes `processed_events` in the same database transaction as the results and outbox rows, so a replayed event is skipped (effectively-once processing).
 - **Offsets after commit:** the Kafka offset is committed only after that transaction succeeds. If the process crashes mid-way, the event is redelivered and the duplicate event id is ignored.
@@ -277,6 +277,17 @@ STREAM=$(curl -sS -X POST http://127.0.0.1:3100/auth/stream-token \
   -H "Authorization: Bearer $TOKEN" | python3 -c "import json,sys; print(json.load(sys.stdin)['token'])")
 curl -N "http://127.0.0.1:3100/stream?token=$STREAM"
 ```
+
+
+## Evaluation (T10)
+
+`npm run eval` compares name-only and contextual sanctions screening on 100 synthetic AWBs. It calls the rule functions directly, so Kafka and the dev servers are not required.
+
+```sh
+npm run eval
+```
+
+On this set, contextual screening cut alerts by 52% (50 → 24) at 100% recall and avoided 26 of 28 name-only false holds. The dataset, method, results and limits are in `docs/evaluation.md`. Name-only stays the default for the running service and for `npm run e2e`.
 
 ## End-to-end test (T8)
 

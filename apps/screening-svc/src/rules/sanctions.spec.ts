@@ -34,7 +34,7 @@ describe('screenSanctions name-only', () => {
     expect(result.score ?? 0).toBeGreaterThanOrEqual(0.85);
   });
 
-  it('exposes a contextual seam that still delegates in T3', () => {
+  it('defaults to name-only and still hits an exact listed name in both modes', () => {
     const nameOnly = screenSanctions(
       { consignee: { name: 'Viktor Petrov Trading' } },
       'name-only',
@@ -46,6 +46,7 @@ describe('screenSanctions name-only', () => {
     expect(nameOnly.outcome).toBe('HIT');
     expect(contextual.outcome).toBe('HIT');
     expect(contextual.inputs['mode']).toBe('contextual');
+    expect(contextual.ruleVersion).toBe('sanctions-contextual.v1');
   });
 
   it('scores typoed names highly after normalisation', () => {

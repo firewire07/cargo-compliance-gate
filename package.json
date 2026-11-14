@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "e2e": "jest --config e2e/jest.config.ts --runInBand"
+    "e2e": "jest --config e2e/jest.config.ts --runInBand",
+    "eval": "ts-node --transpile-only --project apps/screening-svc/tsconfig.eval.json apps/screening-svc/src/eval/run-eval.ts"
   },
   "private": true,
   "devDependencies": {

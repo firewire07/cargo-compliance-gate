@@ -1,0 +1,2495 @@
+{
+  "synthetic": true,
+  "version": "v1",
+  "disclaimer": "All parties, addresses, dates and AWBs in this file are synthetic and exist only for interview-training evaluation. They do not represent real people or companies, other than names already present on the demo sanctions list.",
+  "labelField": "label",
+  "labelValues": {
+    "HIT": "The sanctions check should alert (true listed party or evasion).",
+    "PASS": "The sanctions check should not alert."
+  },
+  "size": 100,
+  "cases": [
+    {
+      "awb": "020-80000001",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading",
+          "country": "RU",
+          "address": "14 Nevsky Lane, Office 9, Saint Petersburg",
+          "registrationDate": "2009-04-17"
+        },
+        "origin": "KUL",
+        "destination": "SVO",
+        "routing": "KUL-SVO",
+        "goodsDescription": "Industrial parts",
+        "hsCode": "8481.80"
+      }
+    },
+    {
+      "awb": "020-80000002",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Northern Star Logistics",
+          "country": "KP",
+          "address": "22 Kumsusan Road, Pyongyang",
+          "registrationDate": "2011-08-02"
+        },
+        "origin": "KUL",
+        "destination": "FNJ",
+        "routing": "KUL-FNJ",
+        "goodsDescription": "Warehouse equipment",
+        "hsCode": "8428.90"
+      }
+    },
+    {
+      "awb": "020-80000003",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Al-Majid Export House",
+          "country": "SY",
+          "address": "5 Straight Street, Damascus",
+          "registrationDate": "2004-11-23"
+        },
+        "origin": "KUL",
+        "destination": "DAM",
+        "routing": "KUL-DAM",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000004",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Golden River Shipping",
+          "country": "IR",
+          "address": "80 Valiasr Avenue, Tehran",
+          "registrationDate": "2007-01-30"
+        },
+        "origin": "KUL",
+        "destination": "IKA",
+        "routing": "KUL-IKA",
+        "goodsDescription": "Marine spares",
+        "hsCode": "8901.90"
+      }
+    },
+    {
+      "awb": "020-80000005",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Red Banner Holdings",
+          "country": "RU",
+          "address": "3 Tverskaya Street, Moscow",
+          "registrationDate": "2013-06-11"
+        },
+        "origin": "KUL",
+        "destination": "SVO",
+        "routing": "KUL-SVO",
+        "goodsDescription": "Steel fittings",
+        "hsCode": "7307.19"
+      }
+    },
+    {
+      "awb": "020-80000006",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Pyongyang Freight Agency",
+          "country": "KP",
+          "address": "9 Sungri Street, Pyongyang",
+          "registrationDate": "1998-02-14"
+        },
+        "origin": "KUL",
+        "destination": "FNJ",
+        "routing": "KUL-FNJ",
+        "goodsDescription": "Packing materials",
+        "hsCode": "4819.10"
+      }
+    },
+    {
+      "awb": "020-80000007",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Caspian Shadow LLC",
+          "country": "IR",
+          "address": "16 Harbour Yard, Bandar Anzali",
+          "registrationDate": "2016-09-05"
+        },
+        "origin": "KUL",
+        "destination": "IKA",
+        "routing": "KUL-IKA",
+        "goodsDescription": "Pump parts",
+        "hsCode": "8413.91"
+      }
+    },
+    {
+      "awb": "020-80000008",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Eastern Promise Traders",
+          "country": "CN",
+          "address": "41 Bund Warehouse, Dalian",
+          "registrationDate": "2010-12-19"
+        },
+        "origin": "KUL",
+        "destination": "PVG",
+        "routing": "KUL-PVG",
+        "goodsDescription": "Electronic parts",
+        "hsCode": "8542.31"
+      }
+    },
+    {
+      "awb": "020-80000009",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Midnight Cargo Services",
+          "country": "AE",
+          "address": "27 Al Suq Street, Ajman",
+          "registrationDate": "2015-03-08"
+        },
+        "origin": "KUL",
+        "destination": "DXB",
+        "routing": "KUL-DXB",
+        "goodsDescription": "Consolidated freight",
+        "hsCode": "8708.99"
+      }
+    },
+    {
+      "awb": "020-80000010",
+      "label": "HIT",
+      "category": "true-hit-exact",
+      "note": "Exact listed name with matching country, address and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Sanctions Test Consignee",
+          "country": "RU",
+          "address": "1 Evaluation Way, Murmansk",
+          "registrationDate": "2020-01-01"
+        },
+        "origin": "KUL",
+        "destination": "LED",
+        "routing": "KUL-LED",
+        "goodsDescription": "Evaluation samples",
+        "hsCode": "9999.00"
+      }
+    },
+    {
+      "awb": "020-80000011",
+      "label": "HIT",
+      "category": "true-hit-fuzzy",
+      "note": "Close variant of a listed name, with matching country and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Tradng",
+          "country": "RU",
+          "address": "14 Nevsky Lane, Office 9, Saint Petersburg",
+          "registrationDate": "2009-04-17"
+        },
+        "origin": "KUL",
+        "destination": "SVO",
+        "routing": "KUL-SVO",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000012",
+      "label": "HIT",
+      "category": "true-hit-fuzzy",
+      "note": "Close variant of a listed name, with matching country and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading Co",
+          "country": "RU",
+          "address": "14 Nevsky Lane, Office 9, Saint Petersburg",
+          "registrationDate": "2009-04-17"
+        },
+        "origin": "KUL",
+        "destination": "LED",
+        "routing": "KUL-LED",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000013",
+      "label": "HIT",
+      "category": "true-hit-fuzzy",
+      "note": "Close variant of a listed name, with matching country and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Northern Star Logistics Co",
+          "country": "KP",
+          "address": "22 Kumsusan Road, Pyongyang",
+          "registrationDate": "2011-08-02"
+        },
+        "origin": "KUL",
+        "destination": "FNJ",
+        "routing": "KUL-FNJ",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000014",
+      "label": "HIT",
+      "category": "true-hit-fuzzy",
+      "note": "Close variant of a listed name, with matching country and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Golden River Shipping Co",
+          "country": "IR",
+          "address": "80 Valiasr Avenue, Tehran",
+          "registrationDate": "2007-01-30"
+        },
+        "origin": "KUL",
+        "destination": "IKA",
+        "routing": "KUL-IKA",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000015",
+      "label": "HIT",
+      "category": "true-hit-fuzzy",
+      "note": "Close variant of a listed name, with matching country and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Red Banner Holdings Ltd",
+          "country": "RU",
+          "address": "3 Tverskaya Street, Moscow",
+          "registrationDate": "2013-06-11"
+        },
+        "origin": "KUL",
+        "destination": "SVO",
+        "routing": "KUL-SVO",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000016",
+      "label": "HIT",
+      "category": "true-hit-fuzzy",
+      "note": "Close variant of a listed name, with matching country and registration.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Eastern Promise Traders Co",
+          "country": "CN",
+          "address": "41 Bund Warehouse, Dalian",
+          "registrationDate": "2010-12-19"
+        },
+        "origin": "KUL",
+        "destination": "PVG",
+        "routing": "KUL-PVG",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000017",
+      "label": "HIT",
+      "category": "true-hit-route",
+      "note": "Exact listed name with no party country; the route still goes to the listed country.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Al-Majid Export House"
+        },
+        "origin": "KUL",
+        "destination": "DAM",
+        "routing": "KUL-DXB-DAM",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000018",
+      "label": "HIT",
+      "category": "true-hit-route",
+      "note": "Exact listed name with no party country; the route still goes to the listed country.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Pyongyang Freight Agency"
+        },
+        "origin": "KUL",
+        "destination": "FNJ",
+        "routing": "KUL-DXB-FNJ",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000019",
+      "label": "HIT",
+      "category": "true-hit-route",
+      "note": "Exact listed name with no party country; the route still goes to the listed country.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Caspian Shadow LLC"
+        },
+        "origin": "KUL",
+        "destination": "IKA",
+        "routing": "KUL-DXB-IKA",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000020",
+      "label": "HIT",
+      "category": "true-hit-route",
+      "note": "Exact listed name with no party country; the route still goes to the listed country.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Midnight Cargo Services"
+        },
+        "origin": "KUL",
+        "destination": "DXB",
+        "routing": "KUL-DXB",
+        "goodsDescription": "General cargo",
+        "hsCode": "6309.00"
+      }
+    },
+    {
+      "awb": "020-80000021",
+      "label": "HIT",
+      "category": "true-hit-evasion",
+      "note": "Exact listed name with a conflicting claimed country and no other identity. Should still hit so a front company cannot clear itself.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading",
+          "country": "NL"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Household goods",
+        "hsCode": "6302.10"
+      }
+    },
+    {
+      "awb": "020-80000022",
+      "label": "HIT",
+      "category": "true-hit-evasion",
+      "note": "Exact listed name with a conflicting claimed country and no other identity. Should still hit so a front company cannot clear itself.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Golden River Shipping",
+          "country": "SG"
+        },
+        "origin": "KUL",
+        "destination": "SIN",
+        "routing": "KUL-SIN",
+        "goodsDescription": "Household goods",
+        "hsCode": "6302.10"
+      }
+    },
+    {
+      "awb": "020-80000023",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading BV",
+          "country": "NL",
+          "address": "12 Keizersgracht, Amsterdam",
+          "registrationDate": "2018-02-02"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Office furniture",
+        "hsCode": "9403.10"
+      }
+    },
+    {
+      "awb": "020-80000024",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading Ltd",
+          "country": "GB",
+          "address": "20 Canary Wharf, London",
+          "registrationDate": "2017-06-15"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Tea and coffee",
+        "hsCode": "0902.30"
+      }
+    },
+    {
+      "awb": "020-80000025",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading GmbH",
+          "country": "DE",
+          "address": "4 Speicherstadt, Hamburg",
+          "registrationDate": "2019-09-09"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Toy components",
+        "hsCode": "9503.00"
+      }
+    },
+    {
+      "awb": "020-80000026",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Northern Star Logistics BV",
+          "country": "NL",
+          "address": "8 Europaweg, Rotterdam",
+          "registrationDate": "2014-04-22"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Perishable flowers",
+        "hsCode": "0603.11"
+      }
+    },
+    {
+      "awb": "020-80000027",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Northern Star Logistics Ltd",
+          "country": "GB",
+          "address": "11 Queen Street, Glasgow",
+          "registrationDate": "2012-11-01"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Wool garments",
+        "hsCode": "6101.20"
+      }
+    },
+    {
+      "awb": "020-80000028",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Northern Star Logistics Inc",
+          "country": "US",
+          "address": "500 W Ohio Street, Chicago",
+          "registrationDate": "2008-07-19"
+        },
+        "origin": "KUL",
+        "destination": "ORD",
+        "routing": "KUL-ORD",
+        "goodsDescription": "Retail apparel",
+        "hsCode": "6203.42"
+      }
+    },
+    {
+      "awb": "020-80000029",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Al-Majid Export House LLC",
+          "country": "AE",
+          "address": "19 Sheikh Zayed Road, Dubai",
+          "registrationDate": "2016-01-20"
+        },
+        "origin": "KUL",
+        "destination": "DXB",
+        "routing": "KUL-DXB",
+        "goodsDescription": "Dates and spices",
+        "hsCode": "0804.10"
+      }
+    },
+    {
+      "awb": "020-80000030",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Al-Majid Export House Ltd",
+          "country": "JO",
+          "address": "3 Rainbow Street, Amman",
+          "registrationDate": "2011-03-03"
+        },
+        "origin": "KUL",
+        "destination": "IST",
+        "routing": "KUL-IST",
+        "goodsDescription": "Olive oil",
+        "hsCode": "1509.10"
+      }
+    },
+    {
+      "awb": "020-80000031",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Al-Majid Export House Inc",
+          "country": "US",
+          "address": "88 Atlantic Avenue, Brooklyn",
+          "registrationDate": "2006-12-12"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Restaurant supplies",
+        "hsCode": "7323.99"
+      }
+    },
+    {
+      "awb": "020-80000032",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Golden River Shipping Ltd",
+          "country": "SG",
+          "address": "15 Keppel Bay, Singapore",
+          "registrationDate": "2015-08-08"
+        },
+        "origin": "KUL",
+        "destination": "SIN",
+        "routing": "KUL-SIN",
+        "goodsDescription": "Consumer electronics",
+        "hsCode": "8518.30"
+      }
+    },
+    {
+      "awb": "020-80000033",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Golden River Shipping BV",
+          "country": "NL",
+          "address": "2 Waalhaven Oostzijde, Rotterdam",
+          "registrationDate": "2013-05-05"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Bicycles",
+        "hsCode": "8712.00"
+      }
+    },
+    {
+      "awb": "020-80000034",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Golden River Shipping Inc",
+          "country": "US",
+          "address": "700 Long Beach Blvd, Los Angeles",
+          "registrationDate": "2002-02-28"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Cotton fabrics",
+        "hsCode": "5208.11"
+      }
+    },
+    {
+      "awb": "020-80000035",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Red Banner Holdings Inc",
+          "country": "US",
+          "address": "350 5th Avenue, New York",
+          "registrationDate": "1999-10-10"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Publishing materials",
+        "hsCode": "4901.99"
+      }
+    },
+    {
+      "awb": "020-80000036",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Red Banner Holdings Ltd",
+          "country": "GB",
+          "address": "14 Camden High Street, London",
+          "registrationDate": "2010-01-14"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Musical instruments",
+        "hsCode": "9202.90"
+      }
+    },
+    {
+      "awb": "020-80000037",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Red Banner Holdings BV",
+          "country": "NL",
+          "address": "21 Prinsengracht, Amsterdam",
+          "registrationDate": "2021-04-04"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Art prints",
+        "hsCode": "4911.91"
+      }
+    },
+    {
+      "awb": "020-80000038",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Pyongyang Freight Agency Co",
+          "country": "KR",
+          "address": "100 Sejong-daero, Seoul",
+          "registrationDate": "2005-06-06"
+        },
+        "origin": "KUL",
+        "destination": "PVG",
+        "routing": "KUL-PVG",
+        "goodsDescription": "Cosmetics",
+        "hsCode": "3304.99"
+      }
+    },
+    {
+      "awb": "020-80000039",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Pyongyang Freight Agency Ltd",
+          "country": "CN",
+          "address": "8 Nanjing Road, Shanghai",
+          "registrationDate": "2018-08-18"
+        },
+        "origin": "KUL",
+        "destination": "PVG",
+        "routing": "KUL-PVG",
+        "goodsDescription": "Footwear",
+        "hsCode": "6403.99"
+      }
+    },
+    {
+      "awb": "020-80000040",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Caspian Shadow Limited",
+          "country": "KZ",
+          "address": "5 Dostyk Avenue, Almaty",
+          "registrationDate": "2019-03-17"
+        },
+        "origin": "KUL",
+        "destination": "IST",
+        "routing": "KUL-IST",
+        "goodsDescription": "Wheat flour",
+        "hsCode": "1101.00"
+      }
+    },
+    {
+      "awb": "020-80000041",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Caspian Shadow Ltd",
+          "country": "AZ",
+          "address": "10 Neftchilar Avenue, Baku",
+          "registrationDate": "2012-09-21"
+        },
+        "origin": "KUL",
+        "destination": "IST",
+        "routing": "KUL-IST",
+        "goodsDescription": "Fruit juice",
+        "hsCode": "2009.11"
+      }
+    },
+    {
+      "awb": "020-80000042",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Eastern Promise Traders Ltd",
+          "country": "GB",
+          "address": "9 Brick Lane, London",
+          "registrationDate": "2003-07-07"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Ceramic tableware",
+        "hsCode": "6912.00"
+      }
+    },
+    {
+      "awb": "020-80000043",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Eastern Promise Traders BV",
+          "country": "NL",
+          "address": "6 Javastraat, Amsterdam",
+          "registrationDate": "2016-06-16"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Chocolate",
+        "hsCode": "1806.32"
+      }
+    },
+    {
+      "awb": "020-80000044",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Eastern Promise Traders Inc",
+          "country": "US",
+          "address": "200 Grant Avenue, San Francisco",
+          "registrationDate": "2000-05-05"
+        },
+        "origin": "KUL",
+        "destination": "ORD",
+        "routing": "KUL-ORD",
+        "goodsDescription": "Paper stationery",
+        "hsCode": "4820.10"
+      }
+    },
+    {
+      "awb": "020-80000045",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Midnight Cargo Services Inc",
+          "country": "US",
+          "address": "45 Cargo Drive, Miami",
+          "registrationDate": "2007-07-07"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Fresh fruit",
+        "hsCode": "0805.10"
+      }
+    },
+    {
+      "awb": "020-80000046",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Midnight Cargo Services Ltd",
+          "country": "GB",
+          "address": "3 Dock Road, Felixstowe",
+          "registrationDate": "2014-02-14"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Books",
+        "hsCode": "4901.10"
+      }
+    },
+    {
+      "awb": "020-80000047",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Midnight Cargo Services BV",
+          "country": "NL",
+          "address": "18 Aalsmeerderweg, Aalsmeer",
+          "registrationDate": "2022-11-11"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Cut flowers",
+        "hsCode": "0603.19"
+      }
+    },
+    {
+      "awb": "020-80000048",
+      "label": "PASS",
+      "category": "look-alike",
+      "note": "Similar name to a listed party, but country, address and registration belong to a different fictional company.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Viktor Petrov Trading GmbH",
+          "country": "DE",
+          "address": "17 Speicherstrasse, Frankfurt",
+          "registrationDate": "2015-10-30"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Kitchenware",
+        "hsCode": "7323.93"
+      }
+    },
+    {
+      "awb": "020-80000049",
+      "label": "PASS",
+      "category": "look-alike-exact-name",
+      "note": "Exact listed name with a different claimed country and no registration date. Labelled PASS (a different fictional company), but contextual still alerts because an exact name plus only a country mismatch is also how a front company would look.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Northern Star Logistics",
+          "country": "GB",
+          "address": "11 Queen Street, Glasgow"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Wool garments",
+        "hsCode": "6101.20"
+      }
+    },
+    {
+      "awb": "020-80000050",
+      "label": "PASS",
+      "category": "look-alike-exact-name",
+      "note": "Exact listed name with a different claimed country and no registration date. Labelled PASS (a different fictional company), but contextual still alerts because an exact name plus only a country mismatch is also how a front company would look.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Midnight Cargo Services",
+          "country": "US",
+          "address": "45 Cargo Drive, Miami"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Fresh fruit",
+        "hsCode": "0805.10"
+      }
+    },
+    {
+      "awb": "020-80000051",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Rotterdam Imports",
+          "country": "NL",
+          "address": "1 Waalhaven, Rotterdam",
+          "registrationDate": "1995-03-12"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Electronic parts",
+        "hsCode": "8542.31"
+      }
+    },
+    {
+      "awb": "020-80000052",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Maple Harbor Trading",
+          "country": "CA",
+          "address": "40 Harbour Street, Toronto",
+          "registrationDate": "2004-08-19"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Maple syrup",
+        "hsCode": "1702.20"
+      }
+    },
+    {
+      "awb": "020-80000053",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Oslo Component Works",
+          "country": "NO",
+          "address": "12 Akersgata, Oslo",
+          "registrationDate": "1998-01-22"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Machine screws",
+        "hsCode": "7318.15"
+      }
+    },
+    {
+      "awb": "020-80000054",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Lisbon Cork Supply",
+          "country": "PT",
+          "address": "7 Rua da Prata, Lisbon",
+          "registrationDate": "2006-04-04"
+        },
+        "origin": "KUL",
+        "destination": "CDG",
+        "routing": "KUL-CDG",
+        "goodsDescription": "Cork stoppers",
+        "hsCode": "4503.10"
+      }
+    },
+    {
+      "awb": "020-80000055",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Helsinki Timber Co",
+          "country": "FI",
+          "address": "2 Mannerheimintie, Helsinki",
+          "registrationDate": "1992-11-30"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Sawn timber",
+        "hsCode": "4407.11"
+      }
+    },
+    {
+      "awb": "020-80000056",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Brisbane Fruit Exchange",
+          "country": "AU",
+          "address": "55 Eagle Street, Brisbane",
+          "registrationDate": "2010-02-02"
+        },
+        "origin": "KUL",
+        "destination": "SIN",
+        "routing": "KUL-SIN",
+        "goodsDescription": "Fresh mangoes",
+        "hsCode": "0804.50"
+      }
+    },
+    {
+      "awb": "020-80000057",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Cape Floral Packers",
+          "country": "ZA",
+          "address": "9 Long Street, Cape Town",
+          "registrationDate": "2008-08-08"
+        },
+        "origin": "KUL",
+        "destination": "DXB",
+        "routing": "KUL-DXB",
+        "goodsDescription": "Cut flowers",
+        "hsCode": "0603.12"
+      }
+    },
+    {
+      "awb": "020-80000058",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Seoul Kitchenware",
+          "country": "KR",
+          "address": "15 Gangnam-daero, Seoul",
+          "registrationDate": "2013-03-13"
+        },
+        "origin": "KUL",
+        "destination": "PVG",
+        "routing": "KUL-PVG",
+        "goodsDescription": "Kitchen knives",
+        "hsCode": "8211.91"
+      }
+    },
+    {
+      "awb": "020-80000059",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Busan Marine Stores",
+          "country": "KR",
+          "address": "3 Jagalchi, Busan",
+          "registrationDate": "2001-06-18"
+        },
+        "origin": "KUL",
+        "destination": "PVG",
+        "routing": "KUL-PVG",
+        "goodsDescription": "Fishing nets",
+        "hsCode": "5608.11"
+      }
+    },
+    {
+      "awb": "020-80000060",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Taipei Optics Lab",
+          "country": "TW",
+          "address": "88 Zhongxiao East Road, Taipei",
+          "registrationDate": "2017-09-01"
+        },
+        "origin": "KUL",
+        "destination": "HKG",
+        "routing": "KUL-HKG",
+        "goodsDescription": "Camera lenses",
+        "hsCode": "9002.11"
+      }
+    },
+    {
+      "awb": "020-80000061",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Bangkok Rice Mills",
+          "country": "TH",
+          "address": "22 Silom Road, Bangkok",
+          "registrationDate": "1988-05-05"
+        },
+        "origin": "KUL",
+        "destination": "BKK",
+        "routing": "KUL-BKK",
+        "goodsDescription": "Milled rice",
+        "hsCode": "1006.30"
+      }
+    },
+    {
+      "awb": "020-80000062",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Penang Spice House",
+          "country": "MY",
+          "address": "10 Beach Street, George Town",
+          "registrationDate": "1996-07-21"
+        },
+        "origin": "KUL",
+        "destination": "KUL",
+        "routing": "KUL-KUL",
+        "goodsDescription": "Black pepper",
+        "hsCode": "0904.11"
+      }
+    },
+    {
+      "awb": "020-80000063",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Johor Plastics",
+          "country": "MY",
+          "address": "5 Jalan Selatan, Johor Bahru",
+          "registrationDate": "2012-12-12"
+        },
+        "origin": "KUL",
+        "destination": "SIN",
+        "routing": "KUL-SIN",
+        "goodsDescription": "Plastic crates",
+        "hsCode": "3923.10"
+      }
+    },
+    {
+      "awb": "020-80000064",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Auckland Wool Direct",
+          "country": "NZ",
+          "address": "18 Queen Street, Auckland",
+          "registrationDate": "2000-10-10"
+        },
+        "origin": "KUL",
+        "destination": "SIN",
+        "routing": "KUL-SIN",
+        "goodsDescription": "Wool yarn",
+        "hsCode": "5107.10"
+      }
+    },
+    {
+      "awb": "020-80000065",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Dublin Dairy Packers",
+          "country": "IE",
+          "address": "6 Grafton Street, Dublin",
+          "registrationDate": "1994-04-17"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Cheese",
+        "hsCode": "0406.90"
+      }
+    },
+    {
+      "awb": "020-80000066",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Edinburgh Malt Stores",
+          "country": "GB",
+          "address": "2 Royal Mile, Edinburgh",
+          "registrationDate": "1985-09-09"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Malted barley",
+        "hsCode": "1107.10"
+      }
+    },
+    {
+      "awb": "020-80000067",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Manchester Cycle Parts",
+          "country": "GB",
+          "address": "33 Deansgate, Manchester",
+          "registrationDate": "2011-11-11"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Bicycle chains",
+        "hsCode": "8714.93"
+      }
+    },
+    {
+      "awb": "020-80000068",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Lyon Silk Atelier",
+          "country": "FR",
+          "address": "14 Rue de la Republique, Lyon",
+          "registrationDate": "1990-03-03"
+        },
+        "origin": "KUL",
+        "destination": "CDG",
+        "routing": "KUL-CDG",
+        "goodsDescription": "Silk fabric",
+        "hsCode": "5007.20"
+      }
+    },
+    {
+      "awb": "020-80000069",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Munich Instrument Co",
+          "country": "DE",
+          "address": "8 Leopoldstrasse, Munich",
+          "registrationDate": "2003-01-27"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Optical instruments",
+        "hsCode": "9013.80"
+      }
+    },
+    {
+      "awb": "020-80000070",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Vienna Coffee Roasters",
+          "country": "AT",
+          "address": "21 Naschmarkt, Vienna",
+          "registrationDate": "2005-05-15"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Roasted coffee",
+        "hsCode": "0901.21"
+      }
+    },
+    {
+      "awb": "020-80000071",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Prague Glassworks",
+          "country": "CZ",
+          "address": "4 Karlova, Prague",
+          "registrationDate": "1989-02-14"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Glass vases",
+        "hsCode": "7013.99"
+      }
+    },
+    {
+      "awb": "020-80000072",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Warsaw Furniture Studio",
+          "country": "PL",
+          "address": "16 Nowy Swiat, Warsaw",
+          "registrationDate": "2014-08-24"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Wooden chairs",
+        "hsCode": "9401.61"
+      }
+    },
+    {
+      "awb": "020-80000073",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Budapest Paprika Co",
+          "country": "HU",
+          "address": "9 Vaci Street, Budapest",
+          "registrationDate": "1997-07-04"
+        },
+        "origin": "KUL",
+        "destination": "IST",
+        "routing": "KUL-IST",
+        "goodsDescription": "Ground paprika",
+        "hsCode": "0904.22"
+      }
+    },
+    {
+      "awb": "020-80000074",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Athens Olive Press",
+          "country": "GR",
+          "address": "11 Ermou, Athens",
+          "registrationDate": "1991-06-06"
+        },
+        "origin": "KUL",
+        "destination": "CDG",
+        "routing": "KUL-CDG",
+        "goodsDescription": "Olive oil",
+        "hsCode": "1509.10"
+      }
+    },
+    {
+      "awb": "020-80000075",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Rome Pasta Export",
+          "country": "IT",
+          "address": "25 Via Nazionale, Rome",
+          "registrationDate": "1986-12-01"
+        },
+        "origin": "KUL",
+        "destination": "CDG",
+        "routing": "KUL-CDG",
+        "goodsDescription": "Dry pasta",
+        "hsCode": "1902.19"
+      }
+    },
+    {
+      "awb": "020-80000076",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Barcelona Ceramics",
+          "country": "ES",
+          "address": "8 Carrer de Mallorca, Barcelona",
+          "registrationDate": "2002-09-19"
+        },
+        "origin": "KUL",
+        "destination": "CDG",
+        "routing": "KUL-CDG",
+        "goodsDescription": "Ceramic tiles",
+        "hsCode": "6907.21"
+      }
+    },
+    {
+      "awb": "020-80000077",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Porto Wine Shippers",
+          "country": "PT",
+          "address": "3 Ribeira, Porto",
+          "registrationDate": "1979-08-08"
+        },
+        "origin": "KUL",
+        "destination": "LHR",
+        "routing": "KUL-LHR",
+        "goodsDescription": "Bottled wine",
+        "hsCode": "2204.21"
+      }
+    },
+    {
+      "awb": "020-80000078",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Stockholm Paper Mill",
+          "country": "SE",
+          "address": "17 Drottninggatan, Stockholm",
+          "registrationDate": "1993-03-23"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Copy paper",
+        "hsCode": "4802.56"
+      }
+    },
+    {
+      "awb": "020-80000079",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Copenhagen Design House",
+          "country": "DK",
+          "address": "5 Stroget, Copenhagen",
+          "registrationDate": "2009-01-09"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Lamps",
+        "hsCode": "9405.21"
+      }
+    },
+    {
+      "awb": "020-80000080",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Zurich Watch Parts",
+          "country": "CH",
+          "address": "10 Bahnhofstrasse, Zurich",
+          "registrationDate": "2004-12-24"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Watch movements",
+        "hsCode": "9108.11"
+      }
+    },
+    {
+      "awb": "020-80000081",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Brussels Chocolate Works",
+          "country": "BE",
+          "address": "7 Rue des Bouchers, Brussels",
+          "registrationDate": "1999-11-05"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Chocolate bars",
+        "hsCode": "1806.32"
+      }
+    },
+    {
+      "awb": "020-80000082",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Antwerp Diamond Tools",
+          "country": "BE",
+          "address": "2 Pelikaanstraat, Antwerp",
+          "registrationDate": "2007-02-02"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Polishing tools",
+        "hsCode": "8205.59"
+      }
+    },
+    {
+      "awb": "020-80000083",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Luxembourg Steel Traders",
+          "country": "LU",
+          "address": "4 Route d'Esch, Luxembourg",
+          "registrationDate": "2016-06-06"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Steel coils",
+        "hsCode": "7208.10"
+      }
+    },
+    {
+      "awb": "020-80000084",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Sofia Yogurt Export",
+          "country": "BG",
+          "address": "13 Vitosha Boulevard, Sofia",
+          "registrationDate": "2010-10-10"
+        },
+        "origin": "KUL",
+        "destination": "IST",
+        "routing": "KUL-IST",
+        "goodsDescription": "Yogurt cultures",
+        "hsCode": "0403.10"
+      }
+    },
+    {
+      "awb": "020-80000085",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Bucharest Timber Yard",
+          "country": "RO",
+          "address": "19 Calea Victoriei, Bucharest",
+          "registrationDate": "2008-03-08"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Pine boards",
+        "hsCode": "4407.12"
+      }
+    },
+    {
+      "awb": "020-80000086",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Zagreb Honey Co",
+          "country": "HR",
+          "address": "6 Ilica, Zagreb",
+          "registrationDate": "2015-05-25"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Honey",
+        "hsCode": "0409.00"
+      }
+    },
+    {
+      "awb": "020-80000087",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Ljubljana Alpine Foods",
+          "country": "SI",
+          "address": "1 Preseren Square, Ljubljana",
+          "registrationDate": "2018-08-08"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Packaged snacks",
+        "hsCode": "1905.90"
+      }
+    },
+    {
+      "awb": "020-80000088",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Riga Baltic Amber",
+          "country": "LV",
+          "address": "8 Alberta Street, Riga",
+          "registrationDate": "2001-01-16"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Amber jewellery",
+        "hsCode": "7113.11"
+      }
+    },
+    {
+      "awb": "020-80000089",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Tallinn Software Boxes",
+          "country": "EE",
+          "address": "12 Viru Street, Tallinn",
+          "registrationDate": "2019-09-19"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Packaged manuals",
+        "hsCode": "4901.99"
+      }
+    },
+    {
+      "awb": "020-80000090",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Vilnius Linen Weavers",
+          "country": "LT",
+          "address": "4 Gedimino, Vilnius",
+          "registrationDate": "1996-06-26"
+        },
+        "origin": "KUL",
+        "destination": "FRA",
+        "routing": "KUL-FRA",
+        "goodsDescription": "Linen fabric",
+        "hsCode": "5309.11"
+      }
+    },
+    {
+      "awb": "020-80000091",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Istanbul Textile House",
+          "country": "TR",
+          "address": "20 Istiklal Avenue, Istanbul",
+          "registrationDate": "1987-07-17"
+        },
+        "origin": "KUL",
+        "destination": "IST",
+        "routing": "KUL-IST",
+        "goodsDescription": "Cotton towels",
+        "hsCode": "6302.21"
+      }
+    },
+    {
+      "awb": "020-80000092",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Doha Packaging LLC",
+          "country": "QA",
+          "address": "11 Corniche Street, Doha",
+          "registrationDate": "2013-04-13"
+        },
+        "origin": "KUL",
+        "destination": "DOH",
+        "routing": "KUL-DOH",
+        "goodsDescription": "Carton boxes",
+        "hsCode": "4819.10"
+      }
+    },
+    {
+      "awb": "020-80000093",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Muscat Dates Co",
+          "country": "OM",
+          "address": "5 Mutrah Corniche, Muscat",
+          "registrationDate": "2006-06-16"
+        },
+        "origin": "KUL",
+        "destination": "DXB",
+        "routing": "KUL-DXB",
+        "goodsDescription": "Dried dates",
+        "hsCode": "0804.10"
+      }
+    },
+    {
+      "awb": "020-80000094",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Colombo Tea Direct",
+          "country": "LK",
+          "address": "9 Galle Face, Colombo",
+          "registrationDate": "1994-09-04"
+        },
+        "origin": "KUL",
+        "destination": "BKK",
+        "routing": "KUL-BKK",
+        "goodsDescription": "Black tea",
+        "hsCode": "0902.40"
+      }
+    },
+    {
+      "awb": "020-80000095",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Dhaka Garment Works",
+          "country": "BD",
+          "address": "18 Gulshan Avenue, Dhaka",
+          "registrationDate": "2005-05-05"
+        },
+        "origin": "KUL",
+        "destination": "BKK",
+        "routing": "KUL-BKK",
+        "goodsDescription": "Cotton shirts",
+        "hsCode": "6205.20"
+      }
+    },
+    {
+      "awb": "020-80000096",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Nairobi Coffee Union",
+          "country": "KE",
+          "address": "7 Kenyatta Avenue, Nairobi",
+          "registrationDate": "1998-08-28"
+        },
+        "origin": "KUL",
+        "destination": "DXB",
+        "routing": "KUL-DXB",
+        "goodsDescription": "Green coffee",
+        "hsCode": "0901.11"
+      }
+    },
+    {
+      "awb": "020-80000097",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Accra Cocoa Traders",
+          "country": "GH",
+          "address": "2 Independence Avenue, Accra",
+          "registrationDate": "2000-02-20"
+        },
+        "origin": "KUL",
+        "destination": "AMS",
+        "routing": "KUL-AMS",
+        "goodsDescription": "Cocoa beans",
+        "hsCode": "1801.00"
+      }
+    },
+    {
+      "awb": "020-80000098",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Santiago Fruit Lines",
+          "country": "CL",
+          "address": "14 Avenida Providencia, Santiago",
+          "registrationDate": "2011-11-21"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Fresh grapes",
+        "hsCode": "0806.10"
+      }
+    },
+    {
+      "awb": "020-80000099",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Lima Textile Andes",
+          "country": "PE",
+          "address": "6 Jiron de la Union, Lima",
+          "registrationDate": "2003-03-03"
+        },
+        "origin": "KUL",
+        "destination": "JFK",
+        "routing": "KUL-JFK",
+        "goodsDescription": "Alpaca knitwear",
+        "hsCode": "6110.11"
+      }
+    },
+    {
+      "awb": "020-80000100",
+      "label": "PASS",
+      "category": "clean",
+      "note": "Ordinary commercial shipment with no resemblance to the demo sanctions list.",
+      "input": {
+        "shipper": {
+          "name": "Acme Forwarding",
+          "country": "MY",
+          "address": "8 Jalan Cargo, Sepang",
+          "registrationDate": "2001-05-09"
+        },
+        "consignee": {
+          "name": "Hanoi Ceramic Export",
+          "country": "VN",
+          "address": "21 Hang Gai, Hanoi",
+          "registrationDate": "2012-12-02"
+        },
+        "origin": "KUL",
+        "destination": "BKK",
+        "routing": "KUL-BKK",
+        "goodsDescription": "Porcelain bowls",
+        "hsCode": "6911.10"
+      }
+    }
+  ]
+}
