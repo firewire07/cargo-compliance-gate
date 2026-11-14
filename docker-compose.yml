@@ -1,5 +1,9 @@
-# Local development infra for Cargo Compliance Gate.
-# Ports are bound to 127.0.0.1 and chosen to avoid cargo-dashboard (3000-3002, 8080, 27017).
+# Cargo Compliance Gate: full local stack (T11).
+#   docker compose up -d --build            # everything
+#   docker compose up -d postgres kafka topic-init   # infra only, apps via `nx serve`
+# Ports are bound to 127.0.0.1 and chosen to avoid cargo-dashboard (3000-3002, 4200, 8080, 27017).
+# Only web (4310), api-gateway (3100), postgres (5433) and kafka's external listener (9094)
+# are published. shipment-svc and screening-svc stay on the Compose network.
 name: cargo-compliance-gate
 
 services:
@@ -79,6 +83,123 @@ services:
             --replication-factor 1
         done
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server "$$bootstrap" --list
+
+  # ---- application services (one replica each; scaling is T12/T12b) ----
+
+  shipment-svc:
+    build:
+      context: .
+      dockerfile: docker/node-service.Dockerfile
+      args:
+        APP: shipment-svc
+    image: cargo-compliance-gate/shipment-svc:local
+    env_file:
+      - path: .env
+        required: false
+    # Container-specific values override .env (which is written for apps on the Mac).
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3101
+      KAFKA_BROKERS: kafka:9092
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cargo}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-cargo_compliance}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      topic-init:
+        condition: service_completed_successfully
+    healthcheck:
+      # No health route on this service; a TCP connect proves Nest is listening
+      # (it only listens after migrations ran and Prisma connected).
+      test: ["CMD", "node", "-e", "require('net').connect(3101,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  screening-svc:
+    build:
+      context: .
+      dockerfile: docker/node-service.Dockerfile
+      args:
+        APP: screening-svc
+    image: cargo-compliance-gate/screening-svc:local
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOST: 0.0.0.0
+      SCREENING_SVC_PORT: 3102
+      KAFKA_BROKERS: kafka:9092
+      SCREENING_DATABASE_URL: postgresql://${POSTGRES_USER:-cargo}:${POSTGRES_PASSWORD}@postgres:5432/cargo_compliance_screening
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      topic-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(3102,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: docker/node-service.Dockerfile
+      args:
+        APP: api-gateway
+    image: cargo-compliance-gate/api-gateway:local
+    ports:
+      - "127.0.0.1:3100:3100"
+    env_file:
+      - path: .env
+        required: false
+    # JWT_SECRET comes from .env only (no default in the repo); config validation fails fast without it.
+    environment:
+      HOST: 0.0.0.0
+      GATEWAY_PORT: 3100
+      KAFKA_BROKERS: kafka:9092
+      SHIPMENT_SVC_URL: http://shipment-svc:3101
+      SCREENING_SVC_URL: http://screening-svc:3102
+    depends_on:
+      kafka:
+        condition: service_healthy
+      shipment-svc:
+        condition: service_healthy
+      screening-svc:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    image: cargo-compliance-gate/web:local
+    ports:
+      # 4310, not 4300, so `nx serve web` (4300) can run next to the container.
+      - "127.0.0.1:4310:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
 
 volumes:
   postgres_data:

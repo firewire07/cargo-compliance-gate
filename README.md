@@ -7,13 +7,57 @@
 [Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
 
 
-## Local infra
+## Run the full stack in Docker (T11)
+
+One command builds and runs everything: Postgres, Kafka, shipment-svc, screening-svc, api-gateway and the web app.
+
+```sh
+cp .env.example .env          # once; local placeholders only
+docker compose up -d --build
+docker compose ps             # every service should be (healthy)
+open http://127.0.0.1:4310    # sign in as operator / operator-demo
+```
+
+How it fits together, and why:
+
+- **One image recipe for all NestJS services.** `docker/node-service.Dockerfile` takes `--build-arg APP=<nx project>`. The builder stage runs `npm ci`, `prisma generate` and `nx build`; the runtime stage is `node:22-slim` with only the production dependencies Nx computed for that app, running as the non-root `node` user. Builder and runtime share the same Debian base, so the Prisma engine generated in the builder matches the runtime.
+- **Migrations before start.** shipment-svc and screening-svc run `prisma migrate deploy` against their own database in the entrypoint, then start Nest. The healthcheck only passes once the app is listening, so migrations have already run.
+- **Web is nginx.** `docker/web.Dockerfile` builds Angular in a Node stage and serves it from `nginx:alpine`. nginx also proxies `/api/*` to `api-gateway:3100`, so the browser sees one origin (no CORS). `/api/stream` has `proxy_buffering off` and a long read timeout so SSE events arrive immediately, and its access log is off so the single-use stream token is not logged.
+- **Config.** Each app reads `.env` through `env_file`, then Compose overrides the container-only values: `HOST=0.0.0.0`, `KAFKA_BROKERS=kafka:9092`, database hosts `postgres:5432`, and service URLs `http://shipment-svc:3101` / `http://screening-svc:3102`. `JWT_SECRET` only comes from `.env`; nothing secret is committed.
+- **Start order.** `depends_on` with `service_healthy` waits for Postgres and Kafka, `topic-init` must finish, the gateway waits for both services, and web waits for the gateway.
+- **One replica each.** Scaling screening-svc is T12; shipment-svc stays at one replica until its pollers are safe (T12b).
+
+Ports (all bound to 127.0.0.1; cargo-dashboard's 3000-3002, 4200, 8080 and 27017 are untouched):
+
+| What | Host port | Inside Compose |
+| --- | --- | --- |
+| web (nginx) | `4310` | `web:80` |
+| api-gateway | `3100` | `api-gateway:3100` |
+| Postgres | `5433` | `postgres:5432` |
+| Kafka | `9094` (EXTERNAL listener) | `kafka:9092` (PLAINTEXT listener) |
+| shipment-svc / screening-svc | not published | `shipment-svc:3101` / `screening-svc:3102` |
+
+Kafka has two listeners because a client connects to whatever address the broker *advertises*. Containers are told `kafka:9092`; apps on the Mac are told `127.0.0.1:9094`. With only one listener, one of the two sides would get an address it cannot reach.
+
+Rebuild after code changes with `docker compose up -d --build <service>`. Stop with `docker compose down` (keeps the Postgres volume; never add `-v`).
+
+### Hybrid dev modes
+
+Mix containers and `nx serve` depending on what you are working on:
+
+- **UI work, backend in containers.** `docker compose stop web`, then `npx nx serve web`. The dev server on `127.0.0.1:4300` proxies `/api` to `127.0.0.1:3100`, which is the gateway container. Hot reload, no rebuilds. (Port 4310 is different from 4300, so you can also leave the web container running.)
+- **Everything on the Mac, infra in Docker** (the pre-T11 flow, best for debugging services). Start only the infra with `docker compose up -d postgres kafka topic-init` (or `docker compose stop shipment-svc screening-svc api-gateway web` if the full stack is up), then `npx nx serve shipment-svc`, `screening-svc` and `api-gateway` as before. They use `.env`, which points at `127.0.0.1:5433` and Kafka's external listener `127.0.0.1:9094`.
+- **One service on the Mac.** Stop that service's container first (`docker compose stop screening-svc`), otherwise both copies join the same consumer group and split the partitions. A consumer like screening-svc only needs Kafka and Postgres, so it works next to the other containers. shipment-svc is called by the gateway container at `shipment-svc:3101`, so when debugging shipment-svc also run the gateway on the Mac.
+
+## Local infra (infra only)
 
 Postgres 16 and a single-node Apache Kafka broker run in Docker Compose. Kafka uses KRaft mode, so there is no ZooKeeper. A one-shot `topic-init` service creates `shipment.events`, `screening.events` and `hold.events` with 3 partitions each so AWB keying can show ordering per partition. Topic creation is idempotent (`--if-not-exists`), which makes setup repeatable.
 
+Use this when you run the apps with `nx serve` on the Mac:
+
 ```sh
 cp .env.example .env
-docker compose up -d
+docker compose up -d postgres kafka topic-init
 docker compose ps
 ```
 
@@ -52,7 +96,7 @@ NestJS service on `127.0.0.1:3101` that stores a shipment, publishes `shipment.s
 - **Kafka key = AWB:** all events for one shipment go to the same partition, so they stay in order.
 - **Fail closed:** a shipment starts as `CHECKING` with a pending-check row (expected DG, EMBARGO, SANCTIONS). Results for an older `shipmentVersion` are ignored. If any result is a HIT, or if a result is still missing when the deadline passes (`HOLD_TIMEOUT_SECONDS`, default 30), the shipment is `HELD` with a `Hold` row. FILING is not in the expected set yet — the filing mock is later, and including it now would hold every shipment on timeout.
 
-Requires local infra (`docker compose up -d`) and `DATABASE_URL` in `.env` (see `.env.example`).
+Requires local infra (`docker compose up -d postgres kafka topic-init`) and `DATABASE_URL` in `.env` (see `.env.example`).
 
 ```sh
 npx prisma migrate dev --schema apps/shipment-svc/prisma/schema.prisma --name shipment-init
@@ -298,10 +342,17 @@ On this set, contextual screening cut alerts by 52% (50 → 24) at 100% recall a
 
 One Jest command talks only to the api-gateway at `127.0.0.1:3100` and checks the thin path: a clean shipment is CLEARED, a sanctioned consignee is HELD, maker-checker release (operator 403, analyst A cannot approve their own request, analyst B can), the audit chain verifies, an `Idempotency-Key` replay does not create a duplicate, and the SSE stream receives the status events. Each run uses unique AWBs. The test polls for status changes with a timeout; it does not use fixed sleeps.
 
-Start the stack first, then run the test:
+Start the stack first, then run the test. Either the full Docker stack:
 
 ```sh
-docker compose up -d
+docker compose up -d --build
+npm run e2e
+```
+
+or infra in Docker and the services on the Mac:
+
+```sh
+docker compose up -d postgres kafka topic-init
 npx nx serve shipment-svc
 npx nx serve screening-svc
 npx nx serve api-gateway

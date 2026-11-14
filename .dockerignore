@@ -1,0 +1,23 @@
+# Keep the build context small and free of local state and secrets.
+.git
+node_modules
+dist
+tmp
+out-tsc
+coverage
+.nx
+.angular
+.vscode
+.idea
+.claude
+**/.DS_Store
+**/*.log
+# Never send local env files into an image; config comes from Compose at runtime.
+.env
+.env.*
+!.env.example
+# Prisma clients are generated inside the image for the Linux runtime,
+# not copied from the Mac (darwin engine).
+apps/**/generated
+e2e
+docs
