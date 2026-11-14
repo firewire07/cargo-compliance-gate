@@ -40,7 +40,20 @@ Ports (all bound to 127.0.0.1; cargo-dashboard's 3000-3002, 4200, 8080 and 27017
 
 Kafka has two listeners because a client connects to whatever address the broker *advertises*. Containers are told `kafka:9092`; apps on the Mac are told `127.0.0.1:9094`. With only one listener, one of the two sides would get an address it cannot reach.
 
-Rebuild after code changes with `docker compose up -d --build <service>`. Stop with `docker compose down` (keeps the Postgres volume; never add `-v`).
+Rebuild after code changes with `docker compose up -d --build <service>`. Stop with `docker compose down` (keeps the Postgres and Kafka volumes; never add `-v`).
+
+**Kafka data lives on a named volume** (`kafka-data` at `/var/lib/kafka/data`). Without it, Kafka kept its log in `/tmp` inside the container, so `docker compose down` or any recreate of the container dropped every topic, message and committed consumer offset. Now they survive restarts and recreates. `CLUSTER_ID` stays fixed because KRaft stamps the volume with it. Topic auto-creation is off, so only `topic-init` creates topics, always with 3 partitions.
+
+To wipe Kafka on purpose (and only then), stop the clients first so nothing writes while the broker is empty, then let `topic-init` recreate the topics:
+
+```sh
+docker compose stop shipment-svc screening-svc api-gateway kafka-ui kafka
+docker compose rm -f kafka
+docker volume rm cargo-compliance-gate_kafka-data   # deletes all Kafka topics, messages and offsets
+docker compose up -d                                # topic-init recreates 3 topics x 3 partitions
+```
+
+Postgres keeps its data either way. Already-published outbox rows are not re-sent, so old events just can't be replayed from Kafka.
 
 ### Hybrid dev modes
 

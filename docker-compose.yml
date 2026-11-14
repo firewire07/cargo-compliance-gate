@@ -36,6 +36,11 @@ services:
     ports:
       # External listener for apps running on the Mac. Containers use kafka:9092.
       - "127.0.0.1:9094:9094"
+    volumes:
+      # Topics, messages and committed consumer offsets survive `down` and
+      # container recreation. The image ships this dir owned by appuser, so a
+      # fresh named volume inherits writable ownership.
+      - kafka-data:/var/lib/kafka/data
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -46,6 +51,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      # Fixed on purpose: KRaft stamps the data dir with this ID and refuses to
+      # start on a volume formatted for a different cluster.
       CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -53,7 +60,10 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      # Only topic-init creates topics (3 partitions). With auto-create on, a
+      # running service could re-create a topic with 1 partition after a reset.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null"]
       interval: 10s
@@ -222,3 +232,4 @@ services:
 
 volumes:
   postgres_data:
+  kafka-data:
