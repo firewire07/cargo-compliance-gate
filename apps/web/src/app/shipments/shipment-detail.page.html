@@ -1,0 +1,217 @@
+<section class="detail">
+  <p class="nav">
+    <a routerLink="/shipments">Shipments</a>
+    @if (isAnalyst()) {
+      · <a routerLink="/holds">Hold queue</a>
+    }
+  </p>
+
+  @if (loading() && !shipment()) {
+    <p>Loading {{ awb() }}…</p>
+  } @else if (loadError(); as message) {
+    <p class="error">{{ message }}</p>
+  } @else if (shipment(); as shipment) {
+    <header class="heading">
+      <h1>{{ shipment.awb }}</h1>
+      <mat-chip [class]="chipClass(shipment.status)">{{ shipment.status }}</mat-chip>
+      @if (phase(); as phase) {
+        <mat-chip [class]="chipClass(phase)">{{ phase }}</mat-chip>
+      }
+      @if (verify(); as result) {
+        @if (result.ok) {
+          <mat-chip class="status-verified">Chain verified ({{ result.checked }} entries)</mat-chip>
+        } @else {
+          <mat-chip class="status-broken">Chain broken at seq {{ result.firstBrokenSeq }}</mat-chip>
+        }
+      }
+    </header>
+    <p class="hint">
+      Audit verification checks the full hash chain, not only this AWB.
+    </p>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Shipment</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <dl class="facts">
+          <div><dt>Route</dt><dd>{{ shipment.origin }} → {{ shipment.destination }}</dd></div>
+          <div><dt>Routing</dt><dd>{{ shipment.routing }}</dd></div>
+          <div><dt>Goods</dt><dd>{{ shipment.goodsDescription }}</dd></div>
+          <div><dt>HS / UN</dt><dd>{{ shipment.hsCode || '—' }} / {{ shipment.unNumber || '—' }}</dd></div>
+          <div><dt>Pieces / weight</dt><dd>{{ shipment.pieces }} / {{ shipment.weight }}</dd></div>
+          <div><dt>Shipper</dt><dd>{{ party('SHIPPER') }}</dd></div>
+          <div><dt>Consignee</dt><dd>{{ party('CONSIGNEE') }}</dd></div>
+          <div><dt>Version</dt><dd>{{ shipment.version }}</dd></div>
+        </dl>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Screening results</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (screenings().length === 0) {
+          <p class="muted">No screening results yet.</p>
+        } @else {
+          <table class="plain">
+            <thead>
+              <tr><th>Check</th><th>Outcome</th><th>Reasons</th><th>Rule</th></tr>
+            </thead>
+            <tbody>
+              @for (row of screenings(); track row.id) {
+                <tr>
+                  <td>{{ row.check }}</td>
+                  <td>
+                    <mat-chip [class]="chipClass(row.outcome)">{{ row.outcome }}</mat-chip>
+                  </td>
+                  <td>{{ row.reasons.length ? row.reasons.join(', ') : '—' }}</td>
+                  <td>{{ row.ruleVersion }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Hold</mat-card-title>
+        @if (hold(); as hold) {
+          <mat-card-subtitle>Opened {{ age() }}. Server role checks still apply even if a button is visible.</mat-card-subtitle>
+        }
+      </mat-card-header>
+      <mat-card-content>
+        @if (!hold()) {
+          <p class="muted">This shipment has no hold.</p>
+        } @else {
+          <p>
+            @for (reason of hold()!.reasons; track reason) {
+              <mat-chip [class]="chipClass(reason)">{{ reason }}</mat-chip>
+            }
+          </p>
+
+          @if (hold()!.releaseRequestedBy) {
+            <p>
+              Release requested by <strong>{{ hold()!.releaseRequestedBy }}</strong>
+              @if (hold()!.releaseRequestedAt) {
+                ({{ hold()!.releaseRequestedAt }}).
+              }
+            </p>
+          }
+          @if (phase() === 'REJECTED') {
+            <p class="error">
+              Rejected by {{ hold()!.releaseRejectedBy }}
+              @if (hold()!.releaseRejectionReason) {
+                — {{ hold()!.releaseRejectionReason }}
+              }
+            </p>
+          }
+          @if (isRequester() && phase() === 'RELEASE_REQUESTED') {
+            <p class="notice">
+              You requested this release. Another analyst must approve or reject it.
+            </p>
+          }
+
+          @if (canEditChecklist()) {
+            <h3>Due-diligence checklist</h3>
+            @for (item of checklist(); track item.id) {
+              <div class="check-row">
+                <mat-checkbox
+                  [checked]="item.done"
+                  [disabled]="busy() || phase() === 'RELEASED'"
+                  (change)="setItemDone(item.id, $event.checked)"
+                >
+                  {{ item.label }}
+                </mat-checkbox>
+                <mat-form-field appearance="outline" class="note">
+                  <mat-label>Note</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="item.note || ''"
+                    (ngModelChange)="setItemNote(item.id, $event)"
+                    [disabled]="busy() || phase() === 'RELEASED'"
+                  />
+                </mat-form-field>
+              </div>
+            }
+            <div class="actions">
+              <button mat-stroked-button type="button" [disabled]="busy()" (click)="saveChecklist()">
+                Save checklist
+              </button>
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="busy() || !canRequestRelease()"
+                (click)="requestRelease()"
+              >
+                Request release
+              </button>
+            </div>
+            @if (!checklistReady() && phase() !== 'RELEASE_REQUESTED' && phase() !== 'RELEASED') {
+              <p class="muted">Complete and save every checklist item before requesting release.</p>
+            }
+          } @else if (hold()) {
+            <h3>Due-diligence checklist</h3>
+            <ul>
+              @for (item of hold()!.checklist; track item.id) {
+                <li>{{ item.done ? '✓' : '○' }} {{ item.label }}@if (item.note) { — {{ item.note }} }</li>
+              }
+            </ul>
+          }
+
+          @if (canDecideRelease()) {
+            <div class="actions">
+              <button mat-flat-button color="primary" type="button" [disabled]="busy()" (click)="approveRelease()">
+                Approve release
+              </button>
+              <mat-form-field appearance="outline" class="note">
+                <mat-label>Rejection reason</mat-label>
+                <input matInput [ngModel]="rejectReason()" (ngModelChange)="rejectReason.set($event)" />
+              </mat-form-field>
+              <button mat-stroked-button type="button" [disabled]="busy()" (click)="rejectRelease()">
+                Reject
+              </button>
+            </div>
+          }
+
+          @if (actionNotice(); as notice) {
+            <p class="notice">{{ notice }}</p>
+          }
+          @if (actionError(); as message) {
+            <p class="error">{{ message }}</p>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Audit timeline</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (audit().length === 0) {
+          <p class="muted">No audit entries for this AWB yet.</p>
+        } @else {
+          <ol class="timeline">
+            @for (entry of audit(); track entry.seq) {
+              <li>
+                <span class="seq">#{{ entry.seq }}</span>
+                <strong>{{ entry.type }}</strong>
+                <span class="muted">{{ entry.ts }} · {{ entry.actor }}</span>
+              </li>
+            }
+          </ol>
+        }
+        @if (verify(); as result) {
+          @if (!result.ok) {
+            <p class="error">{{ result.reason }}</p>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

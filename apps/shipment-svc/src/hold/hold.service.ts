@@ -326,10 +326,11 @@ export class HoldService {
     });
   }
 
-  listHolds() {
-    return this.prisma.hold.findMany({
+  async listHolds() {
+    const holds = await this.prisma.hold.findMany({
       orderBy: { createdAt: 'desc' },
     });
+    return this.withShipmentStatus(holds);
   }
 
   async getHold(awb: string) {
@@ -340,7 +341,25 @@ export class HoldService {
     if (!hold) {
       throw new NotFoundException(`No hold for ${awb}`);
     }
-    return hold;
+    const [enriched] = await this.withShipmentStatus([hold]);
+    return enriched;
+  }
+
+  private async withShipmentStatus<T extends { awb: string }>(holds: T[]) {
+    if (holds.length === 0) {
+      return [];
+    }
+    const shipments = await this.prisma.shipment.findMany({
+      where: { awb: { in: [...new Set(holds.map((hold) => hold.awb))] } },
+      select: { awb: true, status: true },
+    });
+    const statusByAwb = new Map(
+      shipments.map((shipment) => [shipment.awb, shipment.status]),
+    );
+    return holds.map((hold) => ({
+      ...hold,
+      shipmentStatus: statusByAwb.get(hold.awb) ?? 'HELD',
+    }));
   }
 
   private async applyTimeout(pendingId: string): Promise<boolean> {

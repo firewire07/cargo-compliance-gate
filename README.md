@@ -121,7 +121,7 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 ## web
 
-Angular app on `127.0.0.1:4300` (4200 is left free for cargo-dashboard) with real gateway login, a shipment submit form and a live shipments list.
+Angular app on `127.0.0.1:4300` (4200 is left free for cargo-dashboard) with real gateway login, a shipment submit form, a live shipments list, a hold queue and a shipment detail page with audit.
 
 - **Login:** `POST /api/auth/login` against the api-gateway. The access token is kept in `sessionStorage` and sent as `Authorization: Bearer`. The gateway also sets an HttpOnly cookie; the live list does not rely on it, because EventSource cannot send an Authorization header.
 - **Dev proxy:** `/api` is forwarded to the api-gateway at `127.0.0.1:3100` (the `/api` prefix is stripped).
@@ -139,7 +139,15 @@ npx nx serve api-gateway
 npx nx serve web
 ```
 
-Open `http://127.0.0.1:4300`, sign in as `operator` / `operator-demo`, submit a shipment, and watch the list status change.
+Open `http://127.0.0.1:4300`, sign in as `operator` / `operator-demo`, submit a shipment, and watch the list status change. Click an AWB to open its detail page.
+
+**Hold queue and maker-checker (T9):** operators do not see the Hold queue link or analyst actions. To release a held shipment in the UI:
+
+1. As `operator`, submit a shipment whose consignee is on the sanctions list (for example `Viktor Petrov Trading` in `apps/screening-svc/data/sanctions-list.v1.json`). Wait until the list shows HELD, then log out.
+2. Sign in as `analyst-a` / `analyst-a-demo`. Open **Hold queue**, then the AWB. Complete and save the due-diligence checklist, and click **Request release**. The page will say that another analyst must approve it; Approve stays hidden.
+3. Log out and sign in as `analyst-b` / `analyst-b-demo`. Open the same AWB from the hold queue and click **Approve release**. The status becomes RELEASED and the audit timeline plus the chain-verified badge update.
+
+The UI hides actions a role cannot perform, but the shipment service is still the source of truth: a 403 (including self-approval) is shown on the page.
 
 ```sh
 # login and submit through the web proxy (same paths the UI uses)

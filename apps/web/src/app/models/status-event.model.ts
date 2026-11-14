@@ -21,4 +21,13 @@ export function statusFromEvent(type: string): ShipmentStatus | null {
   return STATUS_BY_EVENT[type] ?? null;
 }
 
-export const STREAM_EVENT_TYPES = Object.keys(STATUS_BY_EVENT);
+export const STATUS_EVENT_TYPES = Object.keys(STATUS_BY_EVENT);
+
+export const HOLD_EVENT_TYPES = [
+  'hold.checklist.updated',
+  'hold.release.requested',
+  'hold.release.approved',
+  'hold.release.rejected',
+] as const;
+
+export const STREAM_EVENT_TYPES = [...STATUS_EVENT_TYPES, ...HOLD_EVENT_TYPES];

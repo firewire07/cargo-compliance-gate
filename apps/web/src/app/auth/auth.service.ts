@@ -41,6 +41,15 @@ export class AuthService {
     return this.token !== null && this.userSignal() !== null;
   }
 
+  hasRole(role: string): boolean {
+    return this.userSignal()?.roles.includes(role) ?? false;
+  }
+
+  isAnalyst(): boolean {
+    return this.hasRole('ANALYST');
+  }
+
+
   login(username: string, password: string): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>('/api/auth/login', { username, password })

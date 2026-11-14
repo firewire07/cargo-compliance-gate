@@ -1,18 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
+import { LiveStreamService } from '../live/live-stream.service';
 import { CreateShipmentRequest, Shipment } from '../models/shipment.model';
-import {
-  STREAM_EVENT_TYPES,
-  StatusEvent,
-  statusFromEvent,
-} from '../models/status-event.model';
+import { StatusEvent, statusFromEvent } from '../models/status-event.model';
 
 @Injectable({ providedIn: 'root' })
 export class ShipmentsService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
+  private readonly live = inject(LiveStreamService);
   private pendingIdempotencyKey: string | null = null;
   private readonly itemsSignal = signal<Shipment[]>([]);
   readonly items = this.itemsSignal.asReadonly();
@@ -72,74 +68,15 @@ export class ShipmentsService {
    */
   connectLive(): Observable<StatusEvent> {
     return new Observable((subscriber) => {
-      let source: EventSource | null = null;
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      let stopped = false;
-
-      const closeSource = () => {
-        source?.close();
-        source = null;
-      };
-
-      const schedule = () => {
-        if (stopped) {
-          return;
-        }
-        timer = setTimeout(start, 1000);
-      };
-
-      const openStream = (token: string) => {
-        if (stopped) {
-          return;
-        }
-        source = new EventSource(
-          `/api/stream?token=${encodeURIComponent(token)}`,
-        );
-        for (const type of STREAM_EVENT_TYPES) {
-          source.addEventListener(type, (raw) => {
-            const message = raw as MessageEvent<string>;
-            try {
-              const event = JSON.parse(message.data) as StatusEvent;
-              this.applyEvent(event);
-              subscriber.next(event);
-            } catch {
-              // ignore malformed payloads
-            }
-          });
-        }
-        source.onerror = () => {
-          closeSource();
-          schedule();
-        };
-      };
-
-      const start = () => {
-        if (stopped) {
-          return;
-        }
-        this.list().subscribe({
-          error: () => schedule(),
-          next: () => {
-            if (stopped) {
-              return;
-            }
-            this.auth.issueStreamToken().subscribe({
-              next: ({ token }) => openStream(token),
-              error: () => schedule(),
-            });
-          },
-        });
-      };
-
-      start();
-
-      return () => {
-        stopped = true;
-        if (timer) {
-          clearTimeout(timer);
-        }
-        closeSource();
-      };
+      const sub = this.live.connect(() => this.list()).subscribe({
+        next: (event) => {
+          this.applyEvent(event);
+          subscriber.next(event);
+        },
+        error: (err) => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+      return () => sub.unsubscribe();
     });
   }
 

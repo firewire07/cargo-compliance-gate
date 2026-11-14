@@ -14,6 +14,7 @@ export class App {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly user = this.auth.user;
+  readonly isAnalyst = () => this.auth.isAnalyst();
 
   logout(): void {
     this.auth.logout();

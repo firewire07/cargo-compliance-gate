@@ -1,0 +1,38 @@
+mat-card {
+  margin: 1.5rem auto;
+  max-width: 72rem;
+}
+
+.list {
+  width: 100%;
+}
+
+td mat-chip {
+  margin: 0.15rem 0.25rem 0.15rem 0;
+}
+
+.empty,
+.muted {
+  margin-top: 1rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-held,
+.status-open,
+.status-rejected,
+.status-check-timeout,
+.status-sanctions {
+  --mdc-chip-label-text-color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+.status-release-requested {
+  --mdc-chip-label-text-color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-secondary-container);
+}
+
+.status-released,
+.status-cleared {
+  --mdc-chip-label-text-color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
