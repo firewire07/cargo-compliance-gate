@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma, ShipmentStatus } from '../../generated/prisma';
-import { SHIPMENT_SUBMITTED } from '../events/envelope';
+import { SHIPMENT_SUBMITTED } from '@cargo-compliance-gate/contracts';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
@@ -42,9 +42,13 @@ describe('ShipmentsService', () => {
       fn(tx),
     );
     audit.append.mockResolvedValue(undefined);
+    const config = {
+      get: (key: string) => (key === 'HOLD_TIMEOUT_SECONDS' ? 30 : undefined),
+    };
     service = new ShipmentsService(
       prisma as unknown as PrismaService,
       audit as unknown as AuditService,
+      config as never,
     );
   });
 

@@ -1,7 +1,8 @@
-import 'dotenv/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
+import type { ScreeningEnv } from './config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,9 +13,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  // Do not reuse a generic PORT from .env — shipment-svc defaults to 3101.
-  const port = Number(process.env.SCREENING_SVC_PORT) || 3102;
-  const host = process.env.HOST || '127.0.0.1';
+  const config = app.get(ConfigService<ScreeningEnv, true>);
+  const port = config.get('SCREENING_SVC_PORT', { infer: true });
+  const host = config.get('HOST', { infer: true });
   await app.listen(port, host);
   if (process.env.NX_READY_SIGNAL_SOCKET) {
     try {

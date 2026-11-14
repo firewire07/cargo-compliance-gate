@@ -4,11 +4,10 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { EventEnvelope } from '../events/envelope';
+import { EventEnvelope, SCREENING_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
 import { KafkaProducer } from '../kafka/kafka.producer';
 import { PrismaService } from '../prisma/prisma.service';
 
-export const SCREENING_EVENTS_TOPIC = 'screening.events';
 const POLL_INTERVAL_MS = 1000;
 const BATCH_SIZE = 50;
 

@@ -25,7 +25,8 @@ import {
   SHIPMENT_HELD,
   SHIPMENT_RELEASED,
   ScreeningCheckedPayload,
-} from '../events/envelope';
+  buildEventEnvelope,
+} from '@cargo-compliance-gate/contracts';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   EXPECTED_CHECKS,
@@ -489,17 +490,16 @@ export class HoldService {
     const actor: EventActor | undefined = params.actor
       ? { actorId: params.actor.actorId, role: params.actor.role, at: params.actor.at }
       : undefined;
-    const envelope: EventEnvelope = {
+    const envelope: EventEnvelope = buildEventEnvelope({
       id: eventId,
       type: params.type,
-      schemaVersion: 1,
       occurredAt,
       correlationId: params.correlationId?.trim() || eventId,
       awb: params.awb,
       shipmentVersion: params.shipmentVersion,
-      ...(actor ? { actor } : {}),
+      actor,
       payload: params.payload,
-    };
+    });
     await tx.outbox.create({
       data: {
         id: eventId,

@@ -4,6 +4,8 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { ShipmentEnv } from '../config/env';
 import { holdSweepIntervalMs } from './hold.aggregator';
 import { HoldService } from './hold.service';
 
@@ -13,10 +15,13 @@ export class HoldSweeper implements OnModuleInit, OnModuleDestroy {
   private timer?: NodeJS.Timeout;
   private inFlight = false;
 
-  constructor(private readonly holds: HoldService) {}
+  constructor(
+    private readonly holds: HoldService,
+    private readonly config: ConfigService<ShipmentEnv, true>,
+  ) {}
 
   onModuleInit(): void {
-    const interval = holdSweepIntervalMs();
+    const interval = holdSweepIntervalMs(this.config.get('HOLD_SWEEP_INTERVAL_MS', { infer: true }));
     this.timer = setInterval(() => {
       void this.tick();
     }, interval);

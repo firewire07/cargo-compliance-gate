@@ -1,7 +1,8 @@
-import 'dotenv/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
+import type { ShipmentEnv } from './config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,8 +13,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  const port = Number(process.env.PORT) || 3101;
-  const host = process.env.HOST || '127.0.0.1';
+  const config = app.get(ConfigService<ShipmentEnv, true>);
+  const port = config.get('PORT', { infer: true });
+  const host = config.get('HOST', { infer: true });
   await app.listen(port, host);
   if (process.env.NX_READY_SIGNAL_SOCKET) {
     try {

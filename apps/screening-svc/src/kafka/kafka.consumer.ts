@@ -4,10 +4,12 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Consumer, EachMessagePayload, Kafka, logLevel } from 'kafkajs';
+import { SHIPMENT_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import { kafkaBrokers, type ScreeningEnv } from '../config/env';
 import { ScreeningHandler } from '../screening/screening.handler';
 
-export const SHIPMENT_EVENTS_TOPIC = 'shipment.events';
 export const SCREENING_CONSUMER_GROUP = 'screening-svc';
 
 @Injectable()
@@ -15,13 +17,13 @@ export class KafkaConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(KafkaConsumer.name);
   private consumer!: Consumer;
 
-  constructor(private readonly handler: ScreeningHandler) {}
+  constructor(
+    private readonly handler: ScreeningHandler,
+    private readonly config: ConfigService<ScreeningEnv, true>,
+  ) {}
 
   async onModuleInit(): Promise<void> {
-    const brokers = (process.env.KAFKA_BROKERS ?? '127.0.0.1:9094')
-      .split(',')
-      .map((broker) => broker.trim())
-      .filter(Boolean);
+    const brokers = kafkaBrokers(this.config.get('KAFKA_BROKERS', { infer: true }));
     const kafka = new Kafka({
       clientId: 'screening-svc-consumer',
       brokers,

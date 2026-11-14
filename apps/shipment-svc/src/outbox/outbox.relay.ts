@@ -4,7 +4,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { EventEnvelope, SHIPMENT_EVENTS_TOPIC } from '../events/envelope';
+import { EventEnvelope, SHIPMENT_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
 export { SHIPMENT_EVENTS_TOPIC };
 import { KafkaProducer } from '../kafka/kafka.producer';
 import { PrismaService } from '../prisma/prisma.service';

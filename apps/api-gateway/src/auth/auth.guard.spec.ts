@@ -15,20 +15,17 @@ function contextWith(headers: Record<string, string>): {
   return { ctx, req };
 }
 
+const TEST_SECRET = 'test-only-jwt-secret';
+const config = {
+  get: (key: string) =>
+    key === 'JWT_SECRET' ? TEST_SECRET : key === 'JWT_EXPIRES_IN' ? '2h' : undefined,
+};
+
 describe('JwtAuthGuard', () => {
-  const previousSecret = process.env.JWT_SECRET;
   let guard: JwtAuthGuard;
 
-  beforeAll(() => {
-    process.env.JWT_SECRET = 'test-only-jwt-secret';
-  });
-
-  afterAll(() => {
-    process.env.JWT_SECRET = previousSecret;
-  });
-
   beforeEach(() => {
-    const auth = new AuthService(new StreamTokenStore());
+    const auth = new AuthService(config as never, new StreamTokenStore());
     guard = new JwtAuthGuard(auth);
   });
 
@@ -37,7 +34,7 @@ describe('JwtAuthGuard', () => {
       sub: 'operator',
       username: 'operator',
       roles: ['OPERATOR'],
-    });
+    }, TEST_SECRET);
     const { ctx, req } = contextWith({
       authorization: `Bearer ${token}`,
       'x-user-id': 'analyst-a',
@@ -59,7 +56,7 @@ describe('JwtAuthGuard', () => {
       sub: 'analyst-a',
       username: 'analyst-a',
       roles: ['ANALYST'],
-    });
+    }, TEST_SECRET);
     const { ctx, req } = contextWith({ authorization: `Bearer ${token}` });
 
     expect(guard.canActivate(ctx)).toBe(true);

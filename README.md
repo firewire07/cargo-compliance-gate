@@ -279,6 +279,11 @@ curl -N "http://127.0.0.1:3100/stream?token=$STREAM"
 ```
 
 
+
+## Project structure
+
+Each Nest app is split into feature modules (for example `ShipmentsModule`, `HoldModule` and `AuthModule`) that export only what other modules inject. There is no shared catch-all module. Settings are validated at startup with `@nestjs/config` and Zod, so a missing required value such as `JWT_SECRET` or `DATABASE_URL` stops the process with a clear message. HTTP errors use one JSON shape: `{ statusCode, message, correlationId, timestamp }`. Shared event types and `buildEventEnvelope` live in `libs/contracts` (`@cargo-compliance-gate/contracts`) so shipment-svc and screening-svc keep the same wire format.
+
 ## Evaluation (T10)
 
 `npm run eval` compares name-only and contextual sanctions screening on 100 synthetic AWBs. It calls the rule functions directly, so Kafka and the dev servers are not required.

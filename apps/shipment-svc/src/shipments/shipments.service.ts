@@ -3,7 +3,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
+import {
+  EventEnvelope,
+  SHIPMENT_EVENTS_TOPIC,
+  SHIPMENT_SUBMITTED,
+  buildEventEnvelope,
+} from '@cargo-compliance-gate/contracts';
 import {
   PartyRole,
   Prisma,
@@ -11,7 +18,7 @@ import {
   ShipmentStatus,
 } from '../../generated/prisma';
 import { AuditService } from '../audit/audit.service';
-import { EventEnvelope, SHIPMENT_EVENTS_TOPIC, SHIPMENT_SUBMITTED } from '../events/envelope';
+import type { ShipmentEnv } from '../config/env';
 import { EXPECTED_CHECKS, holdTimeoutSeconds } from '../hold/hold.aggregator';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
@@ -36,6 +43,7 @@ export class ShipmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly config: ConfigService<ShipmentEnv, true>,
   ) {}
 
   async create(
@@ -127,10 +135,9 @@ export class ShipmentsService {
     const occurredAt = new Date().toISOString();
     const corr = correlationId?.trim() || randomUUID();
     const shipmentVersion = 1;
-    const envelope: EventEnvelope<ShipmentSubmittedPayload> = {
+    const envelope: EventEnvelope<ShipmentSubmittedPayload> = buildEventEnvelope({
       id: eventId,
       type: SHIPMENT_SUBMITTED,
-      schemaVersion: 1,
       occurredAt,
       correlationId: corr,
       awb: dto.awb,
@@ -151,7 +158,7 @@ export class ShipmentsService {
           country: dto.consignee.country,
         },
       },
-    };
+    });
 
 const shipment = await tx.shipment.create({
   data: {
@@ -194,7 +201,7 @@ await tx.outbox.create({
   },
 });
 
-const timeoutSec = holdTimeoutSeconds();
+const timeoutSec = holdTimeoutSeconds(this.config.get('HOLD_TIMEOUT_SECONDS', { infer: true }));
 await tx.pendingCheck.create({
   data: {
     awb: dto.awb,

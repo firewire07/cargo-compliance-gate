@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import type { GatewayEnv } from '../config/env';
 
 const SHIPMENT_PREFIXES = ['/shipments', '/holds', '/audit'];
 const SCREENING_PREFIXES = ['/screenings'];
@@ -8,16 +10,18 @@ const SCREENING_PREFIXES = ['/screenings'];
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
 
+  constructor(private readonly config: ConfigService<GatewayEnv, true>) {}
+
   isProxied(path: string): boolean {
     return this.targetBase(path) !== null;
   }
 
   targetBase(path: string): string | null {
     if (SHIPMENT_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
-      return process.env.SHIPMENT_SVC_URL || 'http://127.0.0.1:3101';
+      return this.config.get('SHIPMENT_SVC_URL', { infer: true });
     }
     if (SCREENING_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
-      return process.env.SCREENING_SVC_URL || 'http://127.0.0.1:3102';
+      return this.config.get('SCREENING_SVC_URL', { infer: true });
     }
     return null;
   }

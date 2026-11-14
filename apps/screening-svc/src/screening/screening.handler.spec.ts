@@ -4,7 +4,7 @@ import {
   EventEnvelope,
   SHIPMENT_SUBMITTED,
   ShipmentEventPayload,
-} from '../events/envelope';
+} from '@cargo-compliance-gate/contracts';
 import { ScreeningHandler } from './screening.handler';
 
 const envelope: EventEnvelope<ShipmentEventPayload> = {
@@ -45,7 +45,13 @@ describe('ScreeningHandler', () => {
     prisma.$transaction.mockImplementation(async (fn: (t: typeof tx) => unknown) =>
       fn(tx),
     );
-    handler = new ScreeningHandler(prisma as unknown as PrismaService);
+    const config = {
+      get: (key: string) => (key === 'SANCTIONS_MODE' ? 'name-only' : undefined),
+    };
+    handler = new ScreeningHandler(
+      prisma as unknown as PrismaService,
+      config as never,
+    );
   });
 
   it('writes processed_event, three results and three outbox rows in one transaction', async () => {

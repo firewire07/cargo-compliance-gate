@@ -4,7 +4,7 @@ import {
   EventEnvelope,
   SCREENING_CHECKED,
   ScreeningCheckedPayload,
-} from '../events/envelope';
+} from '@cargo-compliance-gate/contracts';
 import { AuditService } from '../audit/audit.service';
 import { EXPECTED_CHECKS } from './hold.aggregator';
 import { HoldService } from './hold.service';

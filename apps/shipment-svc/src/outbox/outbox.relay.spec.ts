@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { EventEnvelope, SHIPMENT_SUBMITTED } from '../events/envelope';
+import { EventEnvelope, SHIPMENT_SUBMITTED } from '@cargo-compliance-gate/contracts';
 import { KafkaProducer } from '../kafka/kafka.producer';
 import { PrismaService } from '../prisma/prisma.service';
 import { OutboxRelay, SHIPMENT_EVENTS_TOPIC } from './outbox.relay';

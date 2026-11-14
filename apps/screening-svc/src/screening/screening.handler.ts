@@ -10,7 +10,10 @@ import {
   SCREENED_SHIPMENT_TYPES,
   SCREENING_CHECKED,
   ShipmentEventPayload,
-} from '../events/envelope';
+  buildEventEnvelope,
+} from '@cargo-compliance-gate/contracts';
+import { ConfigService } from '@nestjs/config';
+import type { ScreeningEnv } from '../config/env';
 import { PrismaService } from '../prisma/prisma.service';
 import { checkDg } from '../rules/dg';
 import { checkEmbargo } from '../rules/embargo';
@@ -26,7 +29,10 @@ export type HandleResult =
 export class ScreeningHandler {
   private readonly logger = new Logger(ScreeningHandler.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService<ScreeningEnv, true>,
+  ) {}
 
   async handleMessage(
     raw: string,
@@ -96,17 +102,9 @@ export class ScreeningHandler {
         });
 
         const eventId = randomUUID();
-        const outbound: EventEnvelope<{
-          check: string;
-          outcome: string;
-          ruleVersion: string;
-          score?: number;
-          reasons: string[];
-        }> = {
+        const outbound = buildEventEnvelope({
           id: eventId,
           type: SCREENING_CHECKED,
-          schemaVersion: 1,
-          occurredAt: new Date().toISOString(),
           correlationId,
           awb,
           shipmentVersion,
@@ -117,7 +115,7 @@ export class ScreeningHandler {
             score: result.score,
             reasons: result.reasons,
           },
-        };
+        });
 
         await tx.outbox.create({
           data: {
@@ -166,7 +164,7 @@ export class ScreeningHandler {
           goodsDescription: payload.goodsDescription,
           hsCode: payload.hsCode,
         },
-        parseSanctionsMode(process.env.SANCTIONS_MODE),
+        parseSanctionsMode(this.config.get('SANCTIONS_MODE', { infer: true })),
       ),
     ];
   }

@@ -4,24 +4,27 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Consumer, EachMessagePayload, Kafka, logLevel } from 'kafkajs';
+import { HOLD_EVENTS_TOPIC, SHIPMENT_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import { kafkaBrokers, type GatewayEnv } from '../config/env';
 import { StreamHub, type StatusEvent } from './stream.hub';
 
 export const GATEWAY_SSE_GROUP = 'api-gateway-sse';
-const TOPICS = ['hold.events', 'shipment.events'];
+const TOPICS = [HOLD_EVENTS_TOPIC, SHIPMENT_EVENTS_TOPIC];
 
 @Injectable()
 export class StreamConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(StreamConsumer.name);
   private consumer?: Consumer;
 
-  constructor(private readonly hub: StreamHub) {}
+  constructor(
+    private readonly hub: StreamHub,
+    private readonly config: ConfigService<GatewayEnv, true>,
+  ) {}
 
   async onModuleInit(): Promise<void> {
-    const brokers = (process.env.KAFKA_BROKERS ?? '127.0.0.1:9094')
-      .split(',')
-      .map((broker) => broker.trim())
-      .filter(Boolean);
+    const brokers = kafkaBrokers(this.config.get('KAFKA_BROKERS', { infer: true }));
     const kafka = new Kafka({
       clientId: 'api-gateway-sse',
       brokers,

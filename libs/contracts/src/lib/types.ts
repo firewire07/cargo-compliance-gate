@@ -1,9 +1,7 @@
-export const SHIPMENT_SUBMITTED = 'shipment.submitted' as const;
-export const SHIPMENT_UPDATED = 'shipment.updated' as const;
-export const SCREENING_CHECKED = 'screening.checked' as const;
-
-export const SCREENED_SHIPMENT_TYPES = [SHIPMENT_SUBMITTED, SHIPMENT_UPDATED] as const;
-
+/**
+ * Wire format for domain events. schemaVersion is used instead of "version"
+ * so it is not confused with shipmentVersion.
+ */
 export type EventEnvelope<T = unknown> = {
   id: string;
   type: string;
@@ -12,7 +10,14 @@ export type EventEnvelope<T = unknown> = {
   correlationId: string;
   awb: string;
   shipmentVersion: number;
+  actor?: EventActor;
   payload: T;
+};
+
+export type EventActor = {
+  actorId: string;
+  role: string;
+  at: string;
 };
 
 export type PartyPayload = {
@@ -33,4 +38,12 @@ export type ShipmentEventPayload = {
   aircraftType?: string;
   shipper?: PartyPayload;
   consignee?: PartyPayload;
+};
+
+export type ScreeningCheckedPayload = {
+  check?: string;
+  outcome?: string;
+  ruleVersion?: string;
+  score?: number;
+  reasons?: string[];
 };

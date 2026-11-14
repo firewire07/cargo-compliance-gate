@@ -1,20 +1,22 @@
 import { Module } from '@nestjs/common';
-import { KafkaConsumer } from '../kafka/kafka.consumer';
-import { KafkaProducer } from '../kafka/kafka.producer';
-import { OutboxRelay } from '../outbox/outbox.relay';
-import { PrismaService } from '../prisma/prisma.service';
-import { ScreeningController } from '../screening/screening.controller';
-import { ScreeningHandler } from '../screening/screening.handler';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from '../common/http-exception.filter';
+import { validateScreeningEnv } from '../config/env';
+import { OutboxModule } from '../outbox/outbox.module';
+import { ScreeningModule } from '../screening/screening.module';
 
 @Module({
-  imports: [],
-  controllers: [ScreeningController],
-  providers: [
-    PrismaService,
-    ScreeningHandler,
-    KafkaProducer,
-    KafkaConsumer,
-    OutboxRelay,
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      envFilePath: ['.env'],
+      validate: validateScreeningEnv,
+    }),
+    ScreeningModule,
+    OutboxModule,
   ],
+  providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }],
 })
 export class AppModule {}

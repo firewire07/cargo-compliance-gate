@@ -1,30 +1,26 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from '../auth/auth.controller';
-import { AuthService } from '../auth/auth.service';
-import { StreamTokenAliasController } from '../auth/stream-token.alias.controller';
-import { StreamTokenStore } from '../auth/stream-token.store';
-import { ProxyController } from '../proxy/proxy.controller';
-import { ProxyService } from '../proxy/proxy.service';
-import { StreamConsumer } from '../stream/stream.consumer';
-import { StreamController } from '../stream/stream.controller';
-import { StreamHub } from '../stream/stream.hub';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
+import { AuthModule } from '../auth/auth.module';
+import { HttpExceptionFilter } from '../common/http-exception.filter';
+import { validateGatewayEnv } from '../config/env';
+import { ProxyModule } from '../proxy/proxy.module';
+import { StreamModule } from '../stream/stream.module';
 import { AppController } from './app.controller';
 
 @Module({
-  imports: [],
-  controllers: [
-    AppController,
-    AuthController,
-    StreamTokenAliasController,
-    StreamController,
-    ProxyController,
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      envFilePath: ['.env'],
+      validate: validateGatewayEnv,
+    }),
+    AuthModule,
+    ProxyModule,
+    StreamModule,
   ],
-  providers: [
-    AuthService,
-    StreamTokenStore,
-    ProxyService,
-    StreamHub,
-    StreamConsumer,
-  ],
+  controllers: [AppController],
+  providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }],
 })
 export class AppModule {}

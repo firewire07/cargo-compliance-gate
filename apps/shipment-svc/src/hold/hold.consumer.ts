@@ -4,8 +4,10 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Consumer, EachMessagePayload, Kafka, logLevel } from 'kafkajs';
-import { SCREENING_EVENTS_TOPIC } from '../events/envelope';
+import { SCREENING_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import { kafkaBrokers, type ShipmentEnv } from '../config/env';
 import { HoldService } from './hold.service';
 
 export const HOLD_CONSUMER_GROUP = 'shipment-svc-hold';
@@ -15,13 +17,13 @@ export class HoldConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(HoldConsumer.name);
   private consumer!: Consumer;
 
-  constructor(private readonly holds: HoldService) {}
+  constructor(
+    private readonly holds: HoldService,
+    private readonly config: ConfigService<ShipmentEnv, true>,
+  ) {}
 
   async onModuleInit(): Promise<void> {
-    const brokers = (process.env.KAFKA_BROKERS ?? '127.0.0.1:9094')
-      .split(',')
-      .map((broker) => broker.trim())
-      .filter(Boolean);
+    const brokers = kafkaBrokers(this.config.get('KAFKA_BROKERS', { infer: true }));
     const kafka = new Kafka({
       clientId: 'shipment-svc-hold',
       brokers,

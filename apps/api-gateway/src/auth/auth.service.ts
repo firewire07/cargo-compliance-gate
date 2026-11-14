@@ -1,4 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { GatewayEnv } from '../config/env';
 import { findDemoUser } from './users';
 import {
   AccessTokenPayload,
@@ -11,7 +13,18 @@ import { StreamTokenStore } from './stream-token.store';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly streamTokens: StreamTokenStore) {}
+  constructor(
+    private readonly config: ConfigService<GatewayEnv, true>,
+    private readonly streamTokens: StreamTokenStore,
+  ) {}
+
+  private secret(): string {
+    return this.config.get('JWT_SECRET', { infer: true });
+  }
+
+  private expiresIn(): string {
+    return this.config.get('JWT_EXPIRES_IN', { infer: true });
+  }
 
   login(username: string, password: string) {
     const user = findDemoUser(username);
@@ -23,11 +36,11 @@ export class AuthService {
       username: user.username,
       roles: user.roles,
     };
-    const accessToken = signAccessToken(payload);
+    const accessToken = signAccessToken(payload, this.secret(), this.expiresIn());
     return {
       accessToken,
       tokenType: 'Bearer',
-      expiresIn: jwtMaxAgeSec(),
+      expiresIn: jwtMaxAgeSec(this.expiresIn()),
       user: { id: user.id, username: user.username, roles: user.roles },
     };
   }
@@ -40,7 +53,7 @@ export class AuthService {
       throw new UnauthorizedException('Missing access token');
     }
     try {
-      return verifyAccessToken(token);
+      return verifyAccessToken(token, this.secret());
     } catch {
       throw new UnauthorizedException('Invalid or expired access token');
     }
@@ -65,7 +78,7 @@ export class AuthService {
       );
     }
     try {
-      return verifyAccessToken(cookieToken);
+      return verifyAccessToken(cookieToken, this.secret());
     } catch {
       throw new UnauthorizedException('Invalid or expired access token');
     }

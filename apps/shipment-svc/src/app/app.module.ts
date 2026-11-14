@@ -1,28 +1,26 @@
 import { Module } from '@nestjs/common';
-import { AuditController } from '../audit/audit.controller';
-import { AuditService } from '../audit/audit.service';
-import { HoldConsumer } from '../hold/hold.consumer';
-import { HoldController } from '../hold/hold.controller';
-import { HoldService } from '../hold/hold.service';
-import { HoldSweeper } from '../hold/hold.sweeper';
-import { KafkaProducer } from '../kafka/kafka.producer';
-import { OutboxRelay } from '../outbox/outbox.relay';
-import { PrismaService } from '../prisma/prisma.service';
-import { ShipmentsController } from '../shipments/shipments.controller';
-import { ShipmentsService } from '../shipments/shipments.service';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
+import { AuditModule } from '../audit/audit.module';
+import { HttpExceptionFilter } from '../common/http-exception.filter';
+import { validateShipmentEnv } from '../config/env';
+import { HoldModule } from '../hold/hold.module';
+import { OutboxModule } from '../outbox/outbox.module';
+import { ShipmentsModule } from '../shipments/shipments.module';
 
 @Module({
-  imports: [],
-  controllers: [ShipmentsController, HoldController, AuditController],
-  providers: [
-    PrismaService,
-    AuditService,
-    ShipmentsService,
-    HoldService,
-    HoldConsumer,
-    HoldSweeper,
-    KafkaProducer,
-    OutboxRelay,
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      envFilePath: ['.env'],
+      validate: validateShipmentEnv,
+    }),
+    ShipmentsModule,
+    HoldModule,
+    AuditModule,
+    OutboxModule,
   ],
+  providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }],
 })
 export class AppModule {}

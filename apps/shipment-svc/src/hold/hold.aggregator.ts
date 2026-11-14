@@ -67,12 +67,12 @@ export function timeoutReasons(
   );
 }
 
-export function holdTimeoutSeconds(): number {
-  const raw = Number(process.env.HOLD_TIMEOUT_SECONDS);
-  return Number.isFinite(raw) && raw > 0 ? raw : 30;
+export function holdTimeoutSeconds(raw?: number | string): number {
+  const value = raw === undefined || raw === '' ? 30 : Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : 30;
 }
 
-export function holdSweepIntervalMs(): number {
-  const raw = Number(process.env.HOLD_SWEEP_INTERVAL_MS);
-  return Number.isFinite(raw) && raw > 0 ? raw : 2000;
+export function holdSweepIntervalMs(raw?: number | string): number {
+  const value = raw === undefined || raw === '' ? 2000 : Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : 2000;
 }
