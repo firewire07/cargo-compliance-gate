@@ -50,12 +50,14 @@ model ProcessedEvent {
 }
 
 model Outbox {
-  id          String    @id @db.Uuid
-  aggregateId String
-  type        String
-  payload     Json
-  createdAt   DateTime  @default(now())
-  sentAt      DateTime?
+  id            String    @id @db.Uuid
+  aggregateId   String
+  type          String
+  payload       Json
+  /// x-correlation-id of the request/event that caused this row; sent as a Kafka header.
+  correlationId String?
+  createdAt     DateTime  @default(now())
+  sentAt        DateTime?
 
   @@index([sentAt, createdAt])
   @@map("outbox")

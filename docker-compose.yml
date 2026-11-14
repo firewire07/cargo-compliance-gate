@@ -1,9 +1,9 @@
-# Cargo Compliance Gate: full local stack (T11).
+# Cargo Compliance Gate: full local stack (T11, observability T12).
 #   docker compose up -d --build            # everything
 #   docker compose up -d postgres kafka topic-init   # infra only, apps via `nx serve`
 # Ports are bound to 127.0.0.1 and chosen to avoid cargo-dashboard (3000-3002, 4200, 8080, 27017).
-# Only web (4310), api-gateway (3100), postgres (5433) and kafka's external listener (9094)
-# are published. shipment-svc and screening-svc stay on the Compose network.
+# Only web (4310), api-gateway (3100), kafka-ui (8090), postgres (5433) and kafka's
+# external listener (9094) are published. shipment-svc and screening-svc stay on the Compose network.
 name: cargo-compliance-gate
 
 services:
@@ -84,7 +84,26 @@ services:
         done
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server "$$bootstrap" --list
 
-  # ---- application services (one replica each; scaling is T12/T12b) ----
+  # ---- observability (T12) ----
+
+  # Kafka UI: topics, messages (with headers such as x-correlation-id),
+  # consumer groups and lag. Read-only, no auth, so it is bound to 127.0.0.1 only.
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.5.0
+    container_name: cargo-compliance-gate-kafka-ui
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: cargo-compliance-gate
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_READONLY: "true"
+      DYNAMIC_CONFIG_ENABLED: "false"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---- application services (one replica each; scaling is T13/T13b) ----
 
   shipment-svc:
     build:

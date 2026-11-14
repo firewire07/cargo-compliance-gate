@@ -26,6 +26,8 @@ import {
   SHIPMENT_RELEASED,
   ScreeningCheckedPayload,
   buildEventEnvelope,
+  logLine,
+  resolveCorrelationId,
 } from '@cargo-compliance-gate/contracts';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -60,19 +62,55 @@ export class HoldService {
     private readonly audit: AuditService,
   ) {}
 
-  async handleMessage(raw: string): Promise<ApplyResult> {
+  /**
+   * Entry point for screening.events. `headerCorrelationId` is the Kafka
+   * `x-correlation-id` header; it wins over the envelope field.
+   */
+  async handleMessage(
+    raw: string,
+    headerCorrelationId?: string,
+  ): Promise<ApplyResult> {
     let envelope: EventEnvelope<ScreeningCheckedPayload>;
     try {
       envelope = JSON.parse(raw) as EventEnvelope<ScreeningCheckedPayload>;
     } catch {
-      this.logger.warn('Ignoring malformed screening event');
+      this.logger.warn(
+        logLine('screening.malformed', {
+          correlationId: resolveCorrelationId(headerCorrelationId),
+        }),
+      );
       return { status: 'ignored', reason: 'malformed' };
     }
-    return this.applyScreeningResult(envelope);
+    return this.applyScreeningResult(envelope, headerCorrelationId);
   }
 
   async applyScreeningResult(
     envelope: EventEnvelope<ScreeningCheckedPayload>,
+    headerCorrelationId?: string,
+  ): Promise<ApplyResult> {
+    const result = await this.applyScreeningResultInner(
+      envelope,
+      headerCorrelationId,
+    );
+    this.logger.log(
+      logLine('screening.applied', {
+        correlationId: resolveCorrelationId(
+          headerCorrelationId,
+          envelope?.correlationId,
+        ),
+        eventId: envelope?.id,
+        awb: envelope?.awb,
+        check: envelope?.payload?.check,
+        outcome: envelope?.payload?.outcome,
+        ...result,
+      }),
+    );
+    return result;
+  }
+
+  private async applyScreeningResultInner(
+    envelope: EventEnvelope<ScreeningCheckedPayload>,
+    headerCorrelationId?: string,
   ): Promise<ApplyResult> {
     if (!envelope?.id || envelope.type !== SCREENING_CHECKED) {
       return { status: 'ignored', reason: `type:${envelope?.type}` };
@@ -150,7 +188,11 @@ export class HoldService {
         decision.status,
         decision.reasons,
         received,
-        envelope.correlationId || pending.correlationId,
+        resolveCorrelationId(
+          headerCorrelationId,
+          envelope.correlationId,
+          pending.correlationId,
+        ),
       );
       return {
         status: 'decided',
@@ -406,7 +448,12 @@ export class HoldService {
         pending.correlationId,
       );
       this.logger.log(
-        `Fail-closed timeout for ${pending.awb} v${pending.shipmentVersion}: ${reasons.join(', ')}`,
+        logLine('hold.timeout', {
+          correlationId: pending.correlationId,
+          awb: pending.awb,
+          shipmentVersion: pending.shipmentVersion,
+          reasons,
+        }),
       );
       return true;
     });
@@ -490,11 +537,12 @@ export class HoldService {
     const actor: EventActor | undefined = params.actor
       ? { actorId: params.actor.actorId, role: params.actor.role, at: params.actor.at }
       : undefined;
+    const correlationId = resolveCorrelationId(params.correlationId, eventId);
     const envelope: EventEnvelope = buildEventEnvelope({
       id: eventId,
       type: params.type,
       occurredAt,
-      correlationId: params.correlationId?.trim() || eventId,
+      correlationId,
       awb: params.awb,
       shipmentVersion: params.shipmentVersion,
       actor,
@@ -507,6 +555,7 @@ export class HoldService {
         type: params.type,
         topic: HOLD_EVENTS_TOPIC,
         payload: envelope as unknown as Prisma.InputJsonValue,
+        correlationId,
       },
     });
     await this.audit.append(tx, {

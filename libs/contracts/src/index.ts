@@ -16,6 +16,12 @@ export {
   SHIPMENT_UPDATED,
 } from './lib/constants';
 export { buildEventEnvelope } from './lib/build-envelope';
+export {
+  CORRELATION_ID_HEADER,
+  decodeKafkaHeaders,
+  logLine,
+  resolveCorrelationId,
+} from './lib/correlation';
 export type {
   EventActor,
   EventEnvelope,

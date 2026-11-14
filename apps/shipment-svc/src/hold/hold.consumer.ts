@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Consumer, EachMessagePayload, Kafka, logLevel } from 'kafkajs';
-import { SCREENING_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import {
+  CORRELATION_ID_HEADER,
+  SCREENING_EVENTS_TOPIC,
+  decodeKafkaHeaders,
+} from '@cargo-compliance-gate/contracts';
 import { kafkaBrokers, type ShipmentEnv } from '../config/env';
 import { HoldService } from './hold.service';
 
@@ -51,7 +55,8 @@ export class HoldConsumer implements OnModuleInit, OnModuleDestroy {
   }: EachMessagePayload): Promise<void> {
     const raw = message.value?.toString();
     if (raw) {
-      await this.holds.handleMessage(raw);
+      const headers = decodeKafkaHeaders(message.headers);
+      await this.holds.handleMessage(raw, headers[CORRELATION_ID_HEADER]);
     }
     await this.consumer.commitOffsets([
       {

@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Consumer, EachMessagePayload, Kafka, logLevel } from 'kafkajs';
-import { SHIPMENT_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import {
+  SHIPMENT_EVENTS_TOPIC,
+  decodeKafkaHeaders,
+} from '@cargo-compliance-gate/contracts';
 import { kafkaBrokers, type ScreeningEnv } from '../config/env';
 import { ScreeningHandler } from '../screening/screening.handler';
 
@@ -51,15 +54,7 @@ export class KafkaConsumer implements OnModuleInit, OnModuleDestroy {
   }: EachMessagePayload): Promise<void> {
     const raw = message.value?.toString();
     if (raw) {
-      const headers: Record<string, string | undefined> = {};
-      for (const [key, value] of Object.entries(message.headers ?? {})) {
-        headers[key] = Buffer.isBuffer(value)
-          ? value.toString()
-          : Array.isArray(value)
-            ? value[0]?.toString()
-            : value?.toString();
-      }
-      await this.handler.handleMessage(raw, headers);
+      await this.handler.handleMessage(raw, decodeKafkaHeaders(message.headers));
     }
     // Commit only after the handler (and its DB transaction) succeeds.
     await this.consumer.commitOffsets([

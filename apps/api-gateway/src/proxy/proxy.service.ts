@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import {
+  CORRELATION_ID_HEADER,
+  logLine,
+  resolveCorrelationId,
+} from '@cargo-compliance-gate/contracts';
 import type { GatewayEnv } from '../config/env';
 
 const SHIPMENT_PREFIXES = ['/shipments', '/holds', '/audit'];
@@ -36,6 +41,12 @@ export class ProxyService {
     const query = queryIndex >= 0 ? req.url.slice(queryIndex) : '';
     const url = `${base}${req.path}${query}`;
     const headers = this.forwardHeaders(req);
+    // The auth guard sets this; resolve again so a direct call can't skip it.
+    const correlationId = resolveCorrelationId(headers[CORRELATION_ID_HEADER]);
+    headers[CORRELATION_ID_HEADER] = correlationId;
+    // Echo it so clients (and curl users) can quote it when reporting a problem.
+    res.setHeader(CORRELATION_ID_HEADER, correlationId);
+    const started = Date.now();
     const method = (req.method || 'GET').toUpperCase();
     const hasBody = !['GET', 'HEAD'].includes(method);
     let body: string | undefined;
@@ -51,6 +62,16 @@ export class ProxyService {
     }
 
     const upstream = await fetch(url, { method, headers, body });
+    this.logger.log(
+      logLine('proxy.request', {
+        correlationId,
+        method,
+        path: req.path,
+        status: upstream.status,
+        ms: Date.now() - started,
+        userId: headers['x-user-id'],
+      }),
+    );
     res.status(upstream.status);
     const contentType = upstream.headers.get('content-type');
     if (contentType) {

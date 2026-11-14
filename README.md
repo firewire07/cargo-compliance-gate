@@ -25,7 +25,7 @@ How it fits together, and why:
 - **Web is nginx.** `docker/web.Dockerfile` builds Angular in a Node stage and serves it from `nginx:alpine`. nginx also proxies `/api/*` to `api-gateway:3100`, so the browser sees one origin (no CORS). `/api/stream` has `proxy_buffering off` and a long read timeout so SSE events arrive immediately, and its access log is off so the single-use stream token is not logged.
 - **Config.** Each app reads `.env` through `env_file`, then Compose overrides the container-only values: `HOST=0.0.0.0`, `KAFKA_BROKERS=kafka:9092`, database hosts `postgres:5432`, and service URLs `http://shipment-svc:3101` / `http://screening-svc:3102`. `JWT_SECRET` only comes from `.env`; nothing secret is committed.
 - **Start order.** `depends_on` with `service_healthy` waits for Postgres and Kafka, `topic-init` must finish, the gateway waits for both services, and web waits for the gateway.
-- **One replica each.** Scaling screening-svc is T12; shipment-svc stays at one replica until its pollers are safe (T12b).
+- **One replica each.** Scaling screening-svc is T13; shipment-svc stays at one replica until its pollers are safe (T13b).
 
 Ports (all bound to 127.0.0.1; cargo-dashboard's 3000-3002, 4200, 8080 and 27017 are untouched):
 
@@ -33,6 +33,7 @@ Ports (all bound to 127.0.0.1; cargo-dashboard's 3000-3002, 4200, 8080 and 27017
 | --- | --- | --- |
 | web (nginx) | `4310` | `web:80` |
 | api-gateway | `3100` | `api-gateway:3100` |
+| Kafka UI (read-only) | `8090` | `kafka-ui:8080` |
 | Postgres | `5433` | `postgres:5432` |
 | Kafka | `9094` (EXTERNAL listener) | `kafka:9092` (PLAINTEXT listener) |
 | shipment-svc / screening-svc | not published | `shipment-svc:3101` / `screening-svc:3102` |
@@ -48,6 +49,33 @@ Mix containers and `nx serve` depending on what you are working on:
 - **UI work, backend in containers.** `docker compose stop web`, then `npx nx serve web`. The dev server on `127.0.0.1:4300` proxies `/api` to `127.0.0.1:3100`, which is the gateway container. Hot reload, no rebuilds. (Port 4310 is different from 4300, so you can also leave the web container running.)
 - **Everything on the Mac, infra in Docker** (the pre-T11 flow, best for debugging services). Start only the infra with `docker compose up -d postgres kafka topic-init` (or `docker compose stop shipment-svc screening-svc api-gateway web` if the full stack is up), then `npx nx serve shipment-svc`, `screening-svc` and `api-gateway` as before. They use `.env`, which points at `127.0.0.1:5433` and Kafka's external listener `127.0.0.1:9094`.
 - **One service on the Mac.** Stop that service's container first (`docker compose stop screening-svc`), otherwise both copies join the same consumer group and split the partitions. A consumer like screening-svc only needs Kafka and Postgres, so it works next to the other containers. shipment-svc is called by the gateway container at `shipment-svc:3101`, so when debugging shipment-svc also run the gateway on the Mac.
+
+## Observability: trace one request (T12)
+
+**Why.** One shipment touches four processes (gateway, shipment-svc, screening-svc, then shipment-svc again) and three Kafka topics. Without a shared ID, a "my shipment is stuck" report means reading every log by timestamp. With one, you grep a single string.
+
+**How the ID travels.**
+
+1. The gateway keeps the client's `x-correlation-id` or generates a UUID, forwards it to the service and echoes it on the response header.
+2. shipment-svc stores it on the outbox row (`outbox.correlationId`, nullable) and in the event envelope.
+3. The outbox relay sends it as the Kafka header `x-correlation-id`. The envelope wire format is unchanged.
+4. screening-svc reads the header (falling back to the envelope, then to a new UUID), logs it and writes it onto its own outbox rows and `screening.checked` events. shipment-svc does the same for the screening results and the `shipment.held` / `shipment.cleared` decision. The gateway's SSE consumer logs it too.
+
+Log lines are JSON bodies inside Nest's normal prefix, for example `{"event":"outbox.published","correlationId":"...","awb":"..."}`. The helpers (`CORRELATION_ID_HEADER`, `resolveCorrelationId`, `decodeKafkaHeaders`, `logLine`) live in `libs/contracts`.
+
+**Trace an ID.**
+
+```sh
+TOKEN=$(curl -s -X POST http://127.0.0.1:3100/auth/login -H 'content-type: application/json' \
+  -d '{"username":"operator","password":"operator-demo"}' | jq -r .accessToken)
+curl -si -X POST http://127.0.0.1:3100/shipments -H "authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' -H 'x-correlation-id: demo-123' -d @shipment.json | grep -i x-correlation-id
+docker compose logs api-gateway shipment-svc screening-svc | grep demo-123
+```
+
+Leave out the header and the gateway generates an ID; read it from the `x-correlation-id` response header (or from an error body's `correlationId`).
+
+**Kafka UI** is at http://127.0.0.1:8090 (`kafbat/kafka-ui`, read-only, no login, bound to localhost). It shows the topics, the messages with their headers (filter by `x-correlation-id`), and each consumer group (`screening-svc`, `shipment-svc-hold`, `api-gateway-sse`) with its members and **lag**. Lag is the first thing to check when events seem stuck.
 
 ## Local infra (infra only)
 

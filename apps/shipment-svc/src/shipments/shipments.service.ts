@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +11,8 @@ import {
   SHIPMENT_EVENTS_TOPIC,
   SHIPMENT_SUBMITTED,
   buildEventEnvelope,
+  logLine,
+  resolveCorrelationId,
 } from '@cargo-compliance-gate/contracts';
 import {
   PartyRole,
@@ -40,6 +43,8 @@ export type ShipmentSubmittedPayload = {
 
 @Injectable()
 export class ShipmentsService {
+  private readonly logger = new Logger(ShipmentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
@@ -51,11 +56,20 @@ export class ShipmentsService {
     correlationId?: string,
     idempotencyKey?: string,
   ) {
+    // Resolve once so the outbox row, pending check and log line share one ID.
+    const corr = resolveCorrelationId(correlationId);
     const key = idempotencyKey?.trim();
-    if (key) {
-      return this.createIdempotent(dto, correlationId, key);
-    }
-    return this.createNew(dto, correlationId);
+    const shipment = key
+      ? await this.createIdempotent(dto, corr, key)
+      : await this.createNew(dto, corr);
+    this.logger.log(
+      logLine('shipment.submitted', {
+        correlationId: corr,
+        awb: dto.awb,
+        idempotent: Boolean(key),
+      }),
+    );
+    return shipment;
   }
 
   private async createIdempotent(
@@ -133,7 +147,7 @@ export class ShipmentsService {
   ): Promise<Shipment> {
     const eventId = randomUUID();
     const occurredAt = new Date().toISOString();
-    const corr = correlationId?.trim() || randomUUID();
+    const corr = resolveCorrelationId(correlationId);
     const shipmentVersion = 1;
     const envelope: EventEnvelope<ShipmentSubmittedPayload> = buildEventEnvelope({
       id: eventId,
@@ -198,6 +212,7 @@ await tx.outbox.create({
     type: SHIPMENT_SUBMITTED,
     topic: SHIPMENT_EVENTS_TOPIC,
     payload: envelope as unknown as Prisma.InputJsonValue,
+    correlationId: corr,
   },
 });
 

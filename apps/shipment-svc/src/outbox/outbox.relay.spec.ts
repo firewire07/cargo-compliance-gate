@@ -21,6 +21,7 @@ const row = {
   type: SHIPMENT_SUBMITTED,
   topic: SHIPMENT_EVENTS_TOPIC,
   payload: envelope,
+  correlationId: 'corr-1',
   createdAt: new Date('2026-11-13T08:00:00.000Z'),
   sentAt: null,
 };
@@ -41,6 +42,7 @@ describe('OutboxRelay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    jest.spyOn(Logger.prototype, 'log').mockImplementation();
     relay = new OutboxRelay(
       prisma as unknown as PrismaService,
       kafka as unknown as KafkaProducer,
@@ -65,7 +67,7 @@ describe('OutboxRelay', () => {
         {
           key: '020-12345675',
           value: JSON.stringify(envelope),
-          headers: { correlationId: 'corr-1' },
+          headers: { 'x-correlation-id': 'corr-1' },
         },
       ],
     });
@@ -99,6 +101,68 @@ describe('OutboxRelay', () => {
 
     expect(kafka.send).toHaveBeenCalledWith(
       expect.objectContaining({ topic: 'hold.events' }),
+    );
+  });
+
+  it('sends the outbox correlationId column as the x-correlation-id header', async () => {
+    prisma.outbox.findMany.mockResolvedValue([
+      { ...row, correlationId: 'corr-from-column' },
+    ]);
+    kafka.send.mockResolvedValue(undefined);
+    prisma.outbox.update.mockResolvedValue({});
+
+    await relay.poll();
+
+    const message = kafka.send.mock.calls[0][0].messages[0];
+    expect(message.headers).toEqual({ 'x-correlation-id': 'corr-from-column' });
+    // Envelope wire format is unchanged.
+    expect(JSON.parse(message.value)).toEqual(envelope);
+  });
+
+  it('falls back to the envelope correlationId for rows written before the column existed', async () => {
+    prisma.outbox.findMany.mockResolvedValue([{ ...row, correlationId: null }]);
+    kafka.send.mockResolvedValue(undefined);
+    prisma.outbox.update.mockResolvedValue({});
+
+    await relay.poll();
+
+    expect(kafka.send.mock.calls[0][0].messages[0].headers).toEqual({
+      'x-correlation-id': 'corr-1',
+    });
+  });
+
+  it('generates a correlation id when neither the row nor the envelope has one', async () => {
+    prisma.outbox.findMany.mockResolvedValue([
+      {
+        ...row,
+        correlationId: null,
+        payload: { ...envelope, correlationId: '' },
+      },
+    ]);
+    kafka.send.mockResolvedValue(undefined);
+    prisma.outbox.update.mockResolvedValue({});
+
+    await relay.poll();
+
+    expect(
+      kafka.send.mock.calls[0][0].messages[0].headers['x-correlation-id'],
+    ).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('logs the correlationId of every published row', async () => {
+    const log = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+    prisma.outbox.findMany.mockResolvedValue([row]);
+    kafka.send.mockResolvedValue(undefined);
+    prisma.outbox.update.mockResolvedValue({});
+
+    await relay.poll();
+
+    expect(JSON.parse(log.mock.calls[0][0] as string)).toEqual(
+      expect.objectContaining({
+        event: 'outbox.published',
+        correlationId: 'corr-1',
+        eventId: 'evt-1',
+      }),
     );
   });
 });

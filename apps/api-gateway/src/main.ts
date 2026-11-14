@@ -22,6 +22,7 @@ async function bootstrap() {
       'Idempotency-Key',
       'x-correlation-id',
     ],
+    exposedHeaders: ['x-correlation-id'],
   });
 
   const config = app.get(ConfigService<GatewayEnv, true>);

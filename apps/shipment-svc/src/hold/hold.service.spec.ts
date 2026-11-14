@@ -209,4 +209,31 @@ describe('HoldService', () => {
       expect.objectContaining({ type: 'shipment.held', awb: '020-20000003', actor: 'system' }),
     );
   });
+
+  it('carries the Kafka header correlation id onto the decision outbox row and event (T12)', async () => {
+    openPending([
+      { check: 'DG', outcome: 'PASS', reasons: [], eventId: 'evt-DG-PASS' },
+      { check: 'EMBARGO', outcome: 'PASS', reasons: [], eventId: 'evt-EMBARGO-PASS' },
+    ]);
+
+    await service.handleMessage(
+      JSON.stringify(checked('SANCTIONS', 'PASS', { correlationId: 'corr-envelope' })),
+      'corr-header',
+    );
+
+    const data = tx.outbox.create.mock.calls[0][0].data;
+    expect(data.correlationId).toBe('corr-header');
+    expect(data.payload.correlationId).toBe('corr-header');
+  });
+
+  it('falls back to the pending check correlation id when header and envelope are empty (T12)', async () => {
+    openPending([
+      { check: 'DG', outcome: 'PASS', reasons: [], eventId: 'evt-DG-PASS' },
+      { check: 'EMBARGO', outcome: 'PASS', reasons: [], eventId: 'evt-EMBARGO-PASS' },
+    ]);
+
+    await service.applyScreeningResult(checked('SANCTIONS', 'PASS', { correlationId: '' }));
+
+    expect(tx.outbox.create.mock.calls[0][0].data.correlationId).toBe('corr-1');
+  });
 });

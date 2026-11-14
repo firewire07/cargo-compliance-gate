@@ -4,7 +4,13 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { EventEnvelope, SHIPMENT_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import {
+  CORRELATION_ID_HEADER,
+  EventEnvelope,
+  SHIPMENT_EVENTS_TOPIC,
+  logLine,
+  resolveCorrelationId,
+} from '@cargo-compliance-gate/contracts';
 export { SHIPMENT_EVENTS_TOPIC };
 import { KafkaProducer } from '../kafka/kafka.producer';
 import { PrismaService } from '../prisma/prisma.service';
@@ -49,13 +55,20 @@ export class OutboxRelay implements OnModuleInit, OnModuleDestroy {
 
       for (const row of rows) {
         const envelope = row.payload as EventEnvelope;
+        // Column first (T12), then the envelope field (rows written before the
+        // migration), then a fresh UUID so every message carries the header.
+        const correlationId = resolveCorrelationId(
+          row.correlationId,
+          envelope?.correlationId,
+        );
+        const topic = row.topic || SHIPMENT_EVENTS_TOPIC;
         await this.kafka.send({
-          topic: row.topic || SHIPMENT_EVENTS_TOPIC,
+          topic,
           messages: [
             {
               key: row.aggregateId,
               value: JSON.stringify(envelope),
-              headers: { correlationId: envelope.correlationId },
+              headers: { [CORRELATION_ID_HEADER]: correlationId },
             },
           ],
         });
@@ -65,6 +78,15 @@ export class OutboxRelay implements OnModuleInit, OnModuleDestroy {
           where: { id: row.id },
           data: { sentAt: new Date() },
         });
+        this.logger.log(
+          logLine('outbox.published', {
+            correlationId,
+            eventId: row.id,
+            type: row.type,
+            topic,
+            awb: row.aggregateId,
+          }),
+        );
       }
     } catch (err) {
       this.logger.error(

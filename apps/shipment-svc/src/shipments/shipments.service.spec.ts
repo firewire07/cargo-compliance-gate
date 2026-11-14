@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma, ShipmentStatus } from '../../generated/prisma';
 import { SHIPMENT_SUBMITTED } from '@cargo-compliance-gate/contracts';
@@ -38,6 +39,7 @@ describe('ShipmentsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Logger.prototype, 'log').mockImplementation();
     prisma.$transaction.mockImplementation(async (fn: (t: typeof tx) => unknown) =>
       fn(tx),
     );
@@ -114,6 +116,7 @@ describe('ShipmentsService', () => {
     );
     expect(outboxArg.data.payload.occurredAt).toEqual(expect.any(String));
     expect(outboxArg.data.topic).toBe('shipment.events');
+    expect(outboxArg.data.correlationId).toBe('corr-123');
     expect(tx.pendingCheck.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         awb: dto.awb,
@@ -144,6 +147,13 @@ describe('ShipmentsService', () => {
     const envelope = tx.outbox.create.mock.calls[0][0].data.payload;
     expect(envelope.correlationId).toEqual(expect.any(String));
     expect(envelope.correlationId.length).toBeGreaterThan(0);
+    // Same generated ID on the outbox column, envelope and pending check.
+    expect(tx.outbox.create.mock.calls[0][0].data.correlationId).toBe(
+      envelope.correlationId,
+    );
+    expect(tx.pendingCheck.create.mock.calls[0][0].data.correlationId).toBe(
+      envelope.correlationId,
+    );
   });
 
   it('maps a unique constraint error to ConflictException', async () => {

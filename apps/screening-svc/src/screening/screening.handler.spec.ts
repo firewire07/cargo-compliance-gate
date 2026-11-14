@@ -102,4 +102,50 @@ describe('ScreeningHandler', () => {
     expect(tx.outbox.create).not.toHaveBeenCalled();
     expect(result).toEqual({ status: 'skipped', eventId: 'evt-1' });
   });
+
+  describe('correlation id (T12)', () => {
+    beforeEach(() => {
+      tx.processedEvent.createMany.mockResolvedValue({ count: 1 });
+      tx.screeningResult.create.mockResolvedValue({});
+      tx.outbox.create.mockResolvedValue({});
+    });
+
+    it('prefers the x-correlation-id Kafka header and stores it on outbox rows and events', async () => {
+      await handler.handle(envelope, { 'x-correlation-id': 'corr-header' });
+
+      for (const [call] of tx.outbox.create.mock.calls) {
+        expect(call.data.correlationId).toBe('corr-header');
+        expect(call.data.payload.correlationId).toBe('corr-header');
+      }
+    });
+
+    it('falls back to the envelope correlationId when the header is missing', async () => {
+      await handler.handle(envelope, {});
+
+      expect(tx.outbox.create.mock.calls[0][0].data.correlationId).toBe('corr-1');
+    });
+
+    it('generates one when neither header nor envelope has it', async () => {
+      await handler.handle({ ...envelope, correlationId: '' });
+
+      const ids = tx.outbox.create.mock.calls.map(([call]) => call.data.correlationId);
+      expect(ids[0]).toMatch(/^[0-9a-f-]{36}$/);
+      expect(new Set(ids).size).toBe(1);
+    });
+
+    it('logs a structured line with the correlationId', async () => {
+      const log = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+
+      await handler.handle(envelope, { 'x-correlation-id': 'corr-header' });
+
+      const line = JSON.parse(log.mock.calls.at(-1)?.[0] as string);
+      expect(line).toEqual(
+        expect.objectContaining({
+          event: 'screening.completed',
+          correlationId: 'corr-header',
+          awb: '020-12345675',
+        }),
+      );
+    });
+  });
 });

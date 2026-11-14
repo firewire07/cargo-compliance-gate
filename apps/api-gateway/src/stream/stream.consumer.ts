@@ -6,7 +6,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Consumer, EachMessagePayload, Kafka, logLevel } from 'kafkajs';
-import { HOLD_EVENTS_TOPIC, SHIPMENT_EVENTS_TOPIC } from '@cargo-compliance-gate/contracts';
+import {
+  CORRELATION_ID_HEADER,
+  HOLD_EVENTS_TOPIC,
+  SHIPMENT_EVENTS_TOPIC,
+  decodeKafkaHeaders,
+  logLine,
+} from '@cargo-compliance-gate/contracts';
 import { kafkaBrokers, type GatewayEnv } from '../config/env';
 import { StreamHub, type StatusEvent } from './stream.hub';
 
@@ -44,7 +50,7 @@ export class StreamConsumer implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  private onMessage({ message }: EachMessagePayload): void {
+  private onMessage({ topic, message }: EachMessagePayload): void {
     const raw = message.value?.toString();
     if (!raw) {
       return;
@@ -54,15 +60,27 @@ export class StreamConsumer implements OnModuleInit, OnModuleDestroy {
       if (!parsed?.id || !parsed?.type || !parsed?.awb) {
         return;
       }
+      const correlationId =
+        decodeKafkaHeaders(message.headers)[CORRELATION_ID_HEADER] ||
+        parsed.correlationId;
       this.hub.publish({
         id: parsed.id,
         type: parsed.type,
         awb: parsed.awb,
         shipmentVersion: parsed.shipmentVersion,
         occurredAt: parsed.occurredAt,
-        correlationId: parsed.correlationId,
+        correlationId,
         payload: parsed.payload,
       });
+      this.logger.log(
+        logLine('sse.forwarded', {
+          correlationId,
+          eventId: parsed.id,
+          type: parsed.type,
+          topic,
+          awb: parsed.awb,
+        }),
+      );
     } catch {
       this.logger.warn('Ignoring malformed Kafka event on the SSE consumer');
     }

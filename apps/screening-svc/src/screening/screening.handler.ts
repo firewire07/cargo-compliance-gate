@@ -10,7 +10,10 @@ import {
   SCREENED_SHIPMENT_TYPES,
   SCREENING_CHECKED,
   ShipmentEventPayload,
+  CORRELATION_ID_HEADER,
   buildEventEnvelope,
+  logLine,
+  resolveCorrelationId,
 } from '@cargo-compliance-gate/contracts';
 import { ConfigService } from '@nestjs/config';
 import type { ScreeningEnv } from '../config/env';
@@ -42,7 +45,11 @@ export class ScreeningHandler {
     try {
       envelope = JSON.parse(raw) as EventEnvelope<ShipmentEventPayload>;
     } catch {
-      this.logger.warn('Ignoring malformed Kafka payload');
+      this.logger.warn(
+        logLine('shipment-event.malformed', {
+          correlationId: resolveCorrelationId(headers?.[CORRELATION_ID_HEADER]),
+        }),
+      );
       return { status: 'ignored', reason: 'malformed' };
     }
     return this.handle(envelope, headers);
@@ -70,11 +77,11 @@ export class ScreeningHandler {
       return { status: 'ignored', reason: 'missing-awb' };
     }
 
-    const correlationId =
-      envelope.correlationId ||
-      headers?.correlationId ||
-      headers?.['correlation-id'] ||
-      randomUUID();
+    // Kafka header (T12) first, then the envelope field, then a fresh UUID.
+    const correlationId = resolveCorrelationId(
+      headers?.[CORRELATION_ID_HEADER],
+      envelope.correlationId,
+    );
 
     const results = this.evaluate(payload);
 
@@ -123,6 +130,7 @@ export class ScreeningHandler {
             aggregateId: awb,
             type: SCREENING_CHECKED,
             payload: outbound as unknown as Prisma.InputJsonValue,
+            correlationId,
           },
         });
       }
@@ -131,14 +139,26 @@ export class ScreeningHandler {
     });
 
     if (outcome === 'skipped') {
-      this.logger.log(`Skipping already processed event ${envelope.id}`);
+      this.logger.log(
+        logLine('screening.skipped-duplicate', {
+          correlationId,
+          eventId: envelope.id,
+          awb,
+        }),
+      );
       return { status: 'skipped', eventId: envelope.id };
     }
 
     this.logger.log(
-      `Screened ${awb} v${shipmentVersion}: ${results
-        .map((item) => `${item.check}=${item.outcome}`)
-        .join(', ')}`,
+      logLine('screening.completed', {
+        correlationId,
+        eventId: envelope.id,
+        awb,
+        shipmentVersion,
+        results: Object.fromEntries(
+          results.map((item) => [item.check, item.outcome]),
+        ),
+      }),
     );
     return { status: 'processed', eventId: envelope.id, awb, results };
   }
