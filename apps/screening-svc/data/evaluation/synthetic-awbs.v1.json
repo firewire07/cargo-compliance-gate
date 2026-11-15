@@ -1,7 +1,7 @@
 {
   "synthetic": true,
   "version": "v1",
-  "disclaimer": "All parties, addresses, dates and AWBs in this file are synthetic and exist only for interview-training evaluation. They do not represent real people or companies, other than names already present on the demo sanctions list.",
+  "disclaimer": "All parties, addresses, dates and AWBs in this file are synthetic and exist only for local evaluation and demos. They do not represent real people or companies, other than names already present on the demo sanctions list.",
   "labelField": "label",
   "labelValues": {
     "HIT": "The sanctions check should alert (true listed party or evasion).",

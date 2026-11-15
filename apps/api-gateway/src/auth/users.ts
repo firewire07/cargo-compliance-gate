@@ -6,7 +6,7 @@ export type SeedUser = {
 };
 
 /**
- * Seeded demo users for local interview training only.
+ * Seeded demo users for local development and demos only.
  * Passwords are placeholders, not real credentials.
  */
 export const DEMO_USERS: SeedUser[] = [
