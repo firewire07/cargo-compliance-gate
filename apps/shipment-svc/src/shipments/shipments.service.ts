@@ -149,14 +149,34 @@ export class ShipmentsService {
     const occurredAt = new Date().toISOString();
     const corr = resolveCorrelationId(correlationId);
     const shipmentVersion = 1;
-    const envelope: EventEnvelope<ShipmentSubmittedPayload> = buildEventEnvelope({
-      id: eventId,
-      type: SHIPMENT_SUBMITTED,
-      occurredAt,
-      correlationId: corr,
-      awb: dto.awb,
-      shipmentVersion,
-      payload: {
+    const envelope: EventEnvelope<ShipmentSubmittedPayload> =
+      buildEventEnvelope({
+        id: eventId,
+        type: SHIPMENT_SUBMITTED,
+        occurredAt,
+        correlationId: corr,
+        awb: dto.awb,
+        shipmentVersion,
+        payload: {
+          awb: dto.awb,
+          origin: dto.origin,
+          destination: dto.destination,
+          pieces: dto.pieces,
+          weight: dto.weight,
+          goodsDescription: dto.goodsDescription,
+          hsCode: dto.hsCode,
+          unNumber: dto.unNumber,
+          routing: dto.routing,
+          shipper: { name: dto.shipper.name, country: dto.shipper.country },
+          consignee: {
+            name: dto.consignee.name,
+            country: dto.consignee.country,
+          },
+        },
+      });
+
+    const shipment = await tx.shipment.create({
+      data: {
         awb: dto.awb,
         origin: dto.origin,
         destination: dto.destination,
@@ -166,78 +186,61 @@ export class ShipmentsService {
         hsCode: dto.hsCode,
         unNumber: dto.unNumber,
         routing: dto.routing,
-        shipper: { name: dto.shipper.name, country: dto.shipper.country },
-        consignee: {
-          name: dto.consignee.name,
-          country: dto.consignee.country,
+        status: ShipmentStatus.CHECKING,
+        version: shipmentVersion,
+        parties: {
+          create: [
+            {
+              role: PartyRole.SHIPPER,
+              name: dto.shipper.name,
+              country: dto.shipper.country,
+            },
+            {
+              role: PartyRole.CONSIGNEE,
+              name: dto.consignee.name,
+              country: dto.consignee.country,
+            },
+          ],
         },
+      },
+      include: { parties: true },
+    });
+
+    await tx.outbox.create({
+      data: {
+        id: eventId,
+        aggregateId: dto.awb,
+        type: SHIPMENT_SUBMITTED,
+        topic: SHIPMENT_EVENTS_TOPIC,
+        payload: envelope as unknown as Prisma.InputJsonValue,
+        correlationId: corr,
       },
     });
 
-const shipment = await tx.shipment.create({
-  data: {
-    awb: dto.awb,
-    origin: dto.origin,
-    destination: dto.destination,
-    pieces: dto.pieces,
-    weight: dto.weight,
-    goodsDescription: dto.goodsDescription,
-    hsCode: dto.hsCode,
-    unNumber: dto.unNumber,
-    routing: dto.routing,
-    status: ShipmentStatus.CHECKING,
-    version: shipmentVersion,
-    parties: {
-      create: [
-        {
-          role: PartyRole.SHIPPER,
-          name: dto.shipper.name,
-          country: dto.shipper.country,
-        },
-        {
-          role: PartyRole.CONSIGNEE,
-          name: dto.consignee.name,
-          country: dto.consignee.country,
-        },
-      ],
-    },
-  },
-  include: { parties: true },
-});
+    const timeoutSec = holdTimeoutSeconds(
+      this.config.get('HOLD_TIMEOUT_SECONDS', { infer: true }),
+    );
+    await tx.pendingCheck.create({
+      data: {
+        awb: dto.awb,
+        shipmentVersion,
+        expected: [...EXPECTED_CHECKS],
+        received: [],
+        deadline: new Date(Date.now() + timeoutSec * 1000),
+        correlationId: corr,
+      },
+    });
 
-await tx.outbox.create({
-  data: {
-    id: eventId,
-    aggregateId: dto.awb,
-    type: SHIPMENT_SUBMITTED,
-    topic: SHIPMENT_EVENTS_TOPIC,
-    payload: envelope as unknown as Prisma.InputJsonValue,
-    correlationId: corr,
-  },
-});
+    await this.audit.append(tx, {
+      eventId,
+      type: SHIPMENT_SUBMITTED,
+      awb: dto.awb,
+      actor: 'system',
+      ts: occurredAt,
+      payload: envelope.payload,
+    });
 
-const timeoutSec = holdTimeoutSeconds(this.config.get('HOLD_TIMEOUT_SECONDS', { infer: true }));
-await tx.pendingCheck.create({
-  data: {
-    awb: dto.awb,
-    shipmentVersion,
-    expected: [...EXPECTED_CHECKS],
-    received: [],
-    deadline: new Date(Date.now() + timeoutSec * 1000),
-    correlationId: corr,
-  },
-});
-
-await this.audit.append(tx, {
-  eventId,
-  type: SHIPMENT_SUBMITTED,
-  awb: dto.awb,
-  actor: 'system',
-  ts: occurredAt,
-  payload: envelope.payload,
-});
-
-return shipment;
+    return shipment;
   }
 
   async list(): Promise<Shipment[]> {

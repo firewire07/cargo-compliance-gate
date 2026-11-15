@@ -6,10 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import {
-  Prisma,
-  ShipmentStatus,
-} from '../../generated/prisma';
+import { Prisma, ShipmentStatus } from '../../generated/prisma';
 import { AuditService } from '../audit/audit.service';
 import { Actor } from '../auth/actor';
 import {
@@ -163,7 +160,10 @@ export class HoldService {
         },
       });
       if (!pending || pending.decidedAt) {
-        return { status: 'ignored', reason: pending ? 'already-decided' : 'no-pending' };
+        return {
+          status: 'ignored',
+          reason: pending ? 'already-decided' : 'no-pending',
+        };
       }
 
       const received = [...(pending.received as ReceivedCheck[])];
@@ -249,11 +249,16 @@ export class HoldService {
         throw new ConflictException(`Hold for ${awb} is already released`);
       }
       if (hold.releaseRequestedBy && !hold.releaseRejectedAt) {
-        throw new ConflictException(`Release already requested by ${hold.releaseRequestedBy}`);
+        throw new ConflictException(
+          `Release already requested by ${hold.releaseRequestedBy}`,
+        );
       }
-      const checklist = (hold.checklist as ChecklistItem[]) ?? defaultChecklist();
+      const checklist =
+        (hold.checklist as ChecklistItem[]) ?? defaultChecklist();
       if (!checklistComplete(checklist)) {
-        throw new ConflictException('Due-diligence checklist must be complete before requesting release');
+        throw new ConflictException(
+          'Due-diligence checklist must be complete before requesting release',
+        );
       }
       const now = new Date();
       const updated = await tx.hold.update({
@@ -288,7 +293,9 @@ export class HoldService {
         throw new ConflictException(`No pending release request for ${awb}`);
       }
       if (hold.releaseRequestedBy === actor.actorId) {
-        throw new ForbiddenException('Maker-checker: the requester cannot approve their own release');
+        throw new ForbiddenException(
+          'Maker-checker: the requester cannot approve their own release',
+        );
       }
       const now = new Date();
       await tx.hold.update({
@@ -477,7 +484,10 @@ export class HoldService {
     });
     await tx.pendingCheck.update({
       where: { id: pendingId },
-      data: { decidedAt: new Date(), received: received as unknown as Prisma.InputJsonValue },
+      data: {
+        decidedAt: new Date(),
+        received: received as unknown as Prisma.InputJsonValue,
+      },
     });
     if (status === 'HELD') {
       await tx.hold.create({
@@ -516,7 +526,9 @@ export class HoldService {
       throw new ConflictException(`Shipment ${awb} is already released`);
     }
     if (shipment.status !== ShipmentStatus.HELD) {
-      throw new ConflictException(`Shipment ${awb} is ${shipment.status}, not HELD`);
+      throw new ConflictException(
+        `Shipment ${awb} is ${shipment.status}, not HELD`,
+      );
     }
     return { shipment, hold };
   }
@@ -535,7 +547,11 @@ export class HoldService {
     const eventId = randomUUID();
     const occurredAt = new Date().toISOString();
     const actor: EventActor | undefined = params.actor
-      ? { actorId: params.actor.actorId, role: params.actor.role, at: params.actor.at }
+      ? {
+          actorId: params.actor.actorId,
+          role: params.actor.role,
+          at: params.actor.at,
+        }
       : undefined;
     const correlationId = resolveCorrelationId(params.correlationId, eventId);
     const envelope: EventEnvelope = buildEventEnvelope({
